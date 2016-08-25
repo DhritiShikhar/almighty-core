@@ -10,7 +10,7 @@ type TrackerQuery struct {
 	// Version for optimistic concurrency control
 	Version int
 	// Tracker is a foreign key for a issue tracker
-	Tracker Tracker `gorm:"ForeignKey:TrackerRefer"`
+	//Tracker Tracker `gorm:"ForeignKey:TrackerID"`
 
-	TrackerRefer int
+	TrackerID int
 }
