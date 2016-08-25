@@ -1,5 +1,5 @@
-hash: bcdcd48e8d2a6948f7bee61d6b45fc89cc4e1026293a4b505f5a7f4f78a53c55
-updated: 2016-08-25T10:17:15.037883801+05:30
+hash: ba01b72f7470fe06d54af589492121f8265e7331fbb0e972feff7e9a42679894
+updated: 2016-08-25T14:52:43.743382119+05:30
 imports:
 - name: bitbucket.org/pkg/inflect
   version: 8961c3750a47b8c0b3e118d52513b97adf85a7e8
@@ -42,6 +42,10 @@ imports:
   - dslengine
 - name: github.com/goadesign/gorma
   version: f7116846126a4cb17a0cddd6b3b429ad1592f260
+- name: github.com/google/go-querystring
+  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
+  subpackages:
+  - query
 - name: github.com/howeyc/fsnotify
   version: f0c08ee9c60704c1879025f2ae0ff3e000082c13
 - name: github.com/inconshreveable/mousetrap
