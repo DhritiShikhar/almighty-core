@@ -292,6 +292,24 @@ var _ = Resource("tracker", func() {
 		Response(InternalServerError)
 		Response(NotFound)
 	})
+	Action("patch", func() {
+		Routing(
+			PATCH("/:id"),
+		)
+		Description("Patch tracker configuration.")
+		Params(func() {
+			Param("id", String, "id")
+		})
+		Payload(PatchTrackerAlternatePayload)
+		Response(OK, func() {
+			Media(Tracker)
+		})
+		Response(BadRequest, func() {
+			Media(ErrorMedia)
+		})
+		Response(InternalServerError)
+		Response(NotFound)
+	})
 
 })
 

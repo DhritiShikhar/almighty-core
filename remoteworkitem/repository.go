@@ -13,6 +13,7 @@ type TrackerRepository interface {
 	Delete(ctx context.Context, ID string) error
 	Create(ctx context.Context, url string, typeID string) (*app.Tracker, error)
 	List(ctx context.Context, criteria criteria.Expression, start *int, length *int) ([]*app.Tracker, error)
+	Patch(ctx context.Context, ID string, t app.Tracker) (*app.Tracker, error)
 }
 
 // TrackerQueryRepository encapsulate storage & retrieval of tracker queries

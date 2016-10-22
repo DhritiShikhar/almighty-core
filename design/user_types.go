@@ -75,6 +75,16 @@ var UpdateTrackerAlternatePayload = Type("UpdateTrackerAlternatePayload", func()
 	Required("url", "type")
 })
 
+// PatchTrackerAlternatePayload defines the structure of tracker payload for patch
+var PatchTrackerAlternatePayload = Type("PatchTrackerAlternatePayload", func() {
+	Attribute("url", String, "URL of the tracker", func() {
+		Example("https://api.github.com/")
+	})
+	Attribute("type", String, "Type of the tracker", func() {
+		Example("github")
+	})
+})
+
 // CreateTrackerQueryAlternatePayload defines the structure of tracker query payload for create
 var CreateTrackerQueryAlternatePayload = Type("CreateTrackerQueryAlternatePayload", func() {
 	Attribute("query", String, "Search query", func() {

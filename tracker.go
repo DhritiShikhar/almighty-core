@@ -122,3 +122,28 @@ func (c *TrackerController) Update(ctx *app.UpdateTrackerContext) error {
 	c.scheduler.ScheduleAllQueries()
 	return result
 }
+
+// Patch runs the patch action.
+func (c *TrackerController) Patch(ctx *app.PatchTrackerContext) error {
+	result := transaction.Do(c.ts, func() error {
+
+		toSave := app.Tracker{
+			ID:   ctx.ID,
+			URL:  ctx.Payload.URL,
+			Type: ctx.Payload.Type,
+		}
+		t, err := c.tRepository.Save(ctx.Context, toSave)
+
+		if err != nil {
+			switch err := err.(type) {
+			case remoteworkitem.BadParameterError, remoteworkitem.ConversionError:
+				return goa.ErrBadRequest(err.Error())
+			default:
+				return goa.ErrInternal(err.Error())
+			}
+		}
+		return ctx.OK(t)
+	})
+	c.scheduler.ScheduleAllQueries()
+	return result
+}

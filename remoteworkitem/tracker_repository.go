@@ -138,6 +138,38 @@ func (r *GormTrackerRepository) Save(ctx context.Context, t app.Tracker) (*app.T
 	return &t2, nil
 }
 
+// Patch patches the given tracker in storage.
+// returns NotFoundError, ConversionError or InternalError
+func (r *GormTrackerRepository) Patch(ctx context.Context, ID string, t app.Tracker) (*app.Tracker, error) {
+	// Create empty struct
+	res := Tracker{}
+
+	// Check if id entered by user is correct
+	id, err := strconv.ParseUint(ID, 10, 64)
+	if err != nil {
+		return nil, NotFoundError{entity: "tracker", ID: ID}
+	}
+
+	// Check if the record is present in database using id
+	// First prints the first record which is found given the conditions
+	log.Printf("looking for id %d", id)
+	tx := r.ts.TX()
+	if tx.First(&res, id).RecordNotFound() {
+		log.Printf("not found, res=%v", res)
+		return nil, NotFoundError{entity: "tracker", ID: t.ID}
+	}
+
+	log.Println("/////////////////////////////////////////////////////////////////////////////////")
+	log.Println(t)
+	log.Println("*********************************************************************************")
+
+	t2 := app.Tracker{
+		ID:   strconv.FormatUint(id, 10),
+		URL:  t.URL,
+		Type: t.Type}
+	return &t2, nil
+}
+
 // Delete deletes the tracker with the given id
 // returns NotFoundError or InternalError
 func (r *GormTrackerRepository) Delete(ctx context.Context, ID string) error {
