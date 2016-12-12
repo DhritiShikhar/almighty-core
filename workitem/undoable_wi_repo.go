@@ -34,6 +34,11 @@ func (r *UndoableWorkItemRepository) Load(ctx context.Context, ID string) (*app.
 	return r.wrapped.Load(ctx, ID)
 }
 
+// LoadPosition implements application.WorkItemRepository
+func (r *UndoableWorkItemRepository) LoadPosition(ctx context.Context, ID string) (*app.WorkItem, error) {
+	return r.wrapped.Load(ctx, ID)
+}
+
 // Save implements application.WorkItemRepository
 func (r *UndoableWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error) {
 	id, err := strconv.ParseUint(wi.ID, 10, 64)

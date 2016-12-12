@@ -58,6 +58,11 @@ func (r *GormWorkItemRepository) Load(ctx context.Context, ID string) (*app.Work
 	if err != nil {
 		return nil, errors.NewInternalError(err.Error())
 	}
+	_, err = r.LoadPosition(ID)
+	if err != nil {
+		return nil, errors.NewInternalError(err.Error())
+	}
+
 	result, err := wiType.ConvertFromModel(*res)
 	if err != nil {
 		return nil, errors.NewConversionError(err.Error())
@@ -66,6 +71,27 @@ func (r *GormWorkItemRepository) Load(ctx context.Context, ID string) (*app.Work
 		result.Fields[SystemCreatedAt] = res.CreatedAt
 	}
 	return result, nil
+}
+
+// LoadPosition returns the position of work item for the given id
+// returns NotFoundError, ConversionError or InternalError
+func (r *GormWorkItemRepository) LoadPosition(ID string) (*Position, error) {
+	id, err := strconv.ParseUint(ID, 10, 64)
+	if err != nil || id == 0 {
+		// treating this as a not found error: the fact that we're using number internal is implementation detail
+		return nil, errors.NewNotFoundError("work item", ID)
+	}
+	log.Printf("loading work item position details%d", id)
+	pos := Position{}
+	tx := r.db.First(&pos, id)
+	if tx.RecordNotFound() {
+		log.Printf("not found, res=%v", pos)
+		return nil, errors.NewNotFoundError("work item", ID)
+	}
+	if tx.Error != nil {
+		return nil, errors.NewInternalError(tx.Error.Error())
+	}
+	return &pos, nil
 }
 
 // Delete deletes the work item with the given id

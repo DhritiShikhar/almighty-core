@@ -18,6 +18,9 @@ var workItem2 = a.Type("WorkItem2", func() {
 	})
 	a.Attribute("relationships", workItemRelationships)
 	a.Attribute("links", genericLinks)
+	a.Attribute("prevItemId", d.String, "ID of the work item which is above it", func() {
+		a.Example("42")
+	})
 	a.Required("type", "attributes")
 })
 
