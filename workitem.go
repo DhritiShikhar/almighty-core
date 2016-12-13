@@ -286,7 +286,6 @@ func (c *WorkitemController) Create(ctx *app.CreateWorkitemContext) error {
 	c.ConvertJSONAPIToWorkItem(*ctx.Payload.Data, &wi)
 
 	return application.Transactional(c.db, func(appl application.Application) error {
-
 		wi, err := appl.WorkItems().Create(ctx, *wit, wi.Fields, currentUser)
 		if err != nil {
 			switch err := err.(type) {
@@ -388,6 +387,11 @@ func (c *WorkitemController) ConvertJSONAPIToWorkItem(source app.WorkItem2, targ
 		version = v
 	}
 	target.Version = version
+
+	/* setting of position
+	1. Fetch the highest value from database and set your position as highestvalue + 1
+	*/
+	//pos, err := appl.WorkItems().LoadPosition(source.Id)
 
 	if source.Relationships != nil && source.Relationships.Assignees != nil {
 		if source.Relationships.Assignees.Data == nil {

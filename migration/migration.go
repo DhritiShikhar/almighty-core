@@ -114,6 +114,9 @@ func getMigrations() migrations {
 
 	// Version 12
 	m = append(m, steps{executeSQLFile("012-position.sql")})
+	// Version 13
+	m = append(m, steps{executeSQLFile("013-add-lifecycle-in-position.sql")})
+
 	// Version N
 	//
 	// In order to add an upgrade, simply append an array of MigrationFunc to the

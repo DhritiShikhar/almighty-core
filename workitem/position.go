@@ -8,7 +8,7 @@ import (
 type Position struct {
 	gormsupport.Lifecycle
 	// Id of the work item which is to be moved
-	Id uint64 `gorm:"primary_key"`
+	ItemId uint64 `gorm:"primary_key"`
 	// Id of the work item above which we are going to move the selected work item
 	PrevItemId int
 }
@@ -31,7 +31,7 @@ func (p Position) Equal(u convert.Equaler) bool {
 	if !p.Lifecycle.Equal(other.Lifecycle) {
 		return false
 	}
-	if p.Id != other.Id {
+	if p.ItemId != other.ItemId {
 		return false
 	}
 	if p.PrevItemId != other.PrevItemId {

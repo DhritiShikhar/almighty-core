@@ -58,7 +58,6 @@ func (r *GormWorkItemRepository) Load(ctx context.Context, ID string) (*app.Work
 	if err != nil {
 		return nil, errors.NewInternalError(err.Error())
 	}
-	_, err = r.LoadPosition(ID)
 	if err != nil {
 		return nil, errors.NewInternalError(err.Error())
 	}
@@ -83,6 +82,7 @@ func (r *GormWorkItemRepository) LoadPosition(ID string) (*Position, error) {
 	}
 	log.Printf("loading work item position details%d", id)
 	pos := Position{}
+
 	tx := r.db.First(&pos, id)
 	if tx.RecordNotFound() {
 		log.Printf("not found, res=%v", pos)
@@ -181,6 +181,9 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 // Create creates a new work item in the repository
 // returns BadParameterError, ConversionError or InternalError
 func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error) {
+	pos := Position{}
+	//p := r.db.Order("prev_item").Last(&pos)
+
 	wiType, err := r.wir.LoadTypeFromDB(typeID)
 	if err != nil {
 		return nil, errors.NewBadParameterError("type", typeID)

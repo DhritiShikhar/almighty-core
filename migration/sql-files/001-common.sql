@@ -64,18 +64,3 @@ CREATE TABLE work_items (
     version integer,
     fields jsonb
 );
-
--- position_workitems
-
-CREATE TABLE position (
-    id bigserial primary key,
-    previtem bigserial primary key,
-);
-
-ALTER TABLE ONLY position 
-   ADD CONSTRAINT position_id_work_items_id_foreign
-     FOREIGN KEY (id)
-     REFERENCES work_items(id)
-     ON UPDATE RESTRICT
-     ON DELETE RESTRICT;
-
