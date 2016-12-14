@@ -51,6 +51,7 @@ var workItem = a.MediaType("application/vnd.workitem+json", func() {
 	a.Required("version")
 	a.Required("type")
 	a.Required("fields")
+	a.Required("previtemid")
 
 	a.View("default", func() {
 		a.Attribute("id")

@@ -118,12 +118,35 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 		return nil, errors.NewBadParameterError("Type", wi.Type)
 	}
 
-	newWi := WorkItem{
-		ID:      id,
-		Type:    wi.Type,
-		Version: wi.Version + 1,
-		Fields:  Fields{},
+	// My stuff goes here
+	log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", wi.Previtemid)
+	n := wi.Previtemid
+	n1 := strconv.Itoa(n)
+	nwi, _ := r.LoadFromDB(n1)
+	temp1 := nwi.Previtemid
+	i, _ := strconv.Atoi(wi.ID)
+	log.Println("********************************nID", nwi.Previtemid)
+	log.Println("********************************WID", wi.ID)
+	nwi.Previtemid = i
+	previous := temp1
+
+	nwi2 := WorkItem{
+		ID:         nwi.ID,
+		Type:       nwi.Type,
+		Version:    nwi.Version + 1,
+		Previtemid: i,
+		Fields:     Fields{},
 	}
+	// My stuff ends here
+
+	newWi := WorkItem{
+		ID:         id,
+		Type:       wi.Type,
+		Version:    wi.Version + 1,
+		Fields:     Fields{},
+		Previtemid: previous,
+	}
+	tx = tx.Where("Version = ?", nwi.Version).Save(&nwi2)
 
 	for fieldName, fieldDef := range wiType.Fields {
 		if fieldName == SystemCreatedAt {
@@ -138,6 +161,7 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 	}
 
 	tx = tx.Where("Version = ?", wi.Version).Save(&newWi)
+
 	if err := tx.Error; err != nil {
 		log.Print(err.Error())
 		return nil, errors.NewInternalError(err.Error())
@@ -152,17 +176,24 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 // Create creates a new work item in the repository
 // returns BadParameterError, ConversionError or InternalError
 func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, previtemid int, creator string) (*app.WorkItem, error) {
+	var previtem int
 	wiType, err := r.wir.LoadTypeFromDB(typeID)
 	if err != nil {
 		return nil, errors.NewBadParameterError("type", typeID)
 	}
 
-	previtemid, err := r.LoadLast()
+	p, err := r.LoadLast()
+	if p == 0 {
+		previtem = 0
+	} else {
+		p, err = r.LoadLast()
+		previtem = p + 1
+	}
 
 	wi := WorkItem{
 		Type:       typeID,
 		Fields:     Fields{},
-		Previtemid: previtemid,
+		Previtemid: previtem,
 	}
 	fields[SystemCreator] = creator
 	for fieldName, fieldDef := range wiType.Fields {

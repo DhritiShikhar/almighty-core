@@ -389,6 +389,9 @@ func (c *WorkitemController) ConvertJSONAPIToWorkItem(source app.WorkItem2, targ
 	}
 	target.Version = version
 
+	p, _ := strconv.Atoi(fmt.Sprintf("%v", source.Attributes["previtemid"]))
+	target.Previtemid = p
+
 	if source.Relationships != nil && source.Relationships.Assignees != nil {
 		if source.Relationships.Assignees.Data == nil {
 			delete(target.Fields, workitem.SystemAssignees)
