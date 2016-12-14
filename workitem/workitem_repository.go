@@ -176,7 +176,6 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 // Create creates a new work item in the repository
 // returns BadParameterError, ConversionError or InternalError
 func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, previtemid int, creator string) (*app.WorkItem, error) {
-	var previtem int
 	wiType, err := r.wir.LoadTypeFromDB(typeID)
 	if err != nil {
 		return nil, errors.NewBadParameterError("type", typeID)
@@ -184,16 +183,17 @@ func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fiel
 
 	p, err := r.LoadLast()
 	if p == 0 {
-		previtem = 0
+		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>First Item")
+		previtemid = 0
 	} else {
-		p, err = r.LoadLast()
-		previtem = p + 1
+		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>Second Item")
+		previtemid = p + 1
 	}
 
 	wi := WorkItem{
 		Type:       typeID,
 		Fields:     Fields{},
-		Previtemid: previtem,
+		Previtemid: previtemid,
 	}
 	fields[SystemCreator] = creator
 	for fieldName, fieldDef := range wiType.Fields {
