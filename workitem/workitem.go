@@ -18,6 +18,8 @@ type WorkItem struct {
 	Version int
 	// the field values
 	Fields Fields `sql:"type:jsonb"`
+	// Previous Item Id
+	Previtemid int
 }
 
 // TableName implements gorm.tabler
@@ -46,6 +48,9 @@ func (wi WorkItem) Equal(u convert.Equaler) bool {
 		return false
 	}
 	if wi.Version != other.Version {
+		return false
+	}
+	if wi.Previtemid != other.Previtemid {
 		return false
 	}
 	return wi.Fields.Equal(other.Fields)

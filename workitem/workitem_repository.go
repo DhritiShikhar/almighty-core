@@ -17,7 +17,7 @@ type WorkItemRepository interface {
 	Load(ctx context.Context, ID string) (*app.WorkItem, error)
 	Save(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error)
 	Delete(ctx context.Context, ID string) error
-	Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error)
+	Create(ctx context.Context, typeID string, fields map[string]interface{}, previtemid int, creator string) (*app.WorkItem, error)
 	List(ctx context.Context, criteria criteria.Expression, start *int, length *int) ([]*app.WorkItem, uint64, error)
 }
 
@@ -59,6 +59,14 @@ func (r *GormWorkItemRepository) Load(ctx context.Context, ID string) (*app.Work
 		return nil, errors.NewInternalError(err.Error())
 	}
 	return convertWorkItemModelToApp(wiType, res)
+}
+
+// LoadLast returns the work item for the given id
+// returns NotFoundError, ConversionError or InternalError
+func (r *GormWorkItemRepository) LoadLast() (int, error) {
+	res := WorkItem{}
+	_ = r.db.Order("previtemid desc").First(&res)
+	return res.Previtemid, nil
 }
 
 // Delete deletes the work item with the given id
@@ -143,14 +151,18 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 
 // Create creates a new work item in the repository
 // returns BadParameterError, ConversionError or InternalError
-func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error) {
+func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, previtemid int, creator string) (*app.WorkItem, error) {
 	wiType, err := r.wir.LoadTypeFromDB(typeID)
 	if err != nil {
 		return nil, errors.NewBadParameterError("type", typeID)
 	}
+
+	previtemid, err := r.LoadLast()
+
 	wi := WorkItem{
-		Type:   typeID,
-		Fields: Fields{},
+		Type:       typeID,
+		Fields:     Fields{},
+		Previtemid: previtemid,
 	}
 	fields[SystemCreator] = creator
 	for fieldName, fieldDef := range wiType.Fields {

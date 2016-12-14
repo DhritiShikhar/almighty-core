@@ -287,7 +287,7 @@ func (c *WorkitemController) Create(ctx *app.CreateWorkitemContext) error {
 
 	return application.Transactional(c.db, func(appl application.Application) error {
 
-		wi, err := appl.WorkItems().Create(ctx, *wit, wi.Fields, currentUser)
+		wi, err := appl.WorkItems().Create(ctx, *wit, wi.Fields, wi.Previtemid, currentUser)
 		if err != nil {
 			switch err := err.(type) {
 			case errors.BadParameterError:
@@ -443,7 +443,8 @@ func ConvertWorkItem(request *goa.RequestData, wi *app.WorkItem, additional ...W
 		ID:   &wi.ID,
 		Type: APIStringTypeWorkItem,
 		Attributes: map[string]interface{}{
-			"version": wi.Version,
+			"version":    wi.Version,
+			"previtemid": wi.Previtemid,
 		},
 		Relationships: &app.WorkItemRelationships{
 			BaseType: &app.RelationBaseType{

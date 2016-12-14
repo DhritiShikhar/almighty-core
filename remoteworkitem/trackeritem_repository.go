@@ -77,7 +77,8 @@ func convert(db *gorm.DB, tID int, item TrackerItemContent, provider string) (*a
 		if c != nil {
 			creator = c.(string)
 		}
-		newWorkItem, err = wir.Create(context.Background(), workitem.SystemBug, workItem.Fields, creator)
+		previtemid := 23
+		newWorkItem, err = wir.Create(context.Background(), workitem.SystemBug, workItem.Fields, workItem.Previtemid, creator)
 		if err != nil {
 			fmt.Println("Error creating work item : ", err)
 		}

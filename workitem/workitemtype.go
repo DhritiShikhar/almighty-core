@@ -97,10 +97,11 @@ func (wit WorkItemType) Equal(u convert.Equaler) bool {
 // ConvertFromModel serializes a database persisted workitem.
 func (wit WorkItemType) ConvertFromModel(workItem WorkItem) (*app.WorkItem, error) {
 	result := app.WorkItem{
-		ID:      strconv.FormatUint(workItem.ID, 10),
-		Type:    workItem.Type,
-		Version: workItem.Version,
-		Fields:  map[string]interface{}{}}
+		ID:         strconv.FormatUint(workItem.ID, 10),
+		Type:       workItem.Type,
+		Version:    workItem.Version,
+		Previtemid: workItem.Previtemid,
+		Fields:     map[string]interface{}{}}
 
 	for name, field := range wit.Fields {
 		var err error
