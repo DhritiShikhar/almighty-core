@@ -17,7 +17,7 @@ type WorkItemRepository interface {
 	Load(ctx context.Context, ID string) (*app.WorkItem, error)
 	Save(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error)
 	Delete(ctx context.Context, ID string) error
-	Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error)
+	Create(ctx context.Context, typeID string, fields map[string]interface{}, position int, creator string) (*app.WorkItem, error)
 	List(ctx context.Context, criteria criteria.Expression, start *int, length *int) ([]*app.WorkItem, uint64, error)
 }
 
@@ -154,14 +154,15 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 
 // Create creates a new work item in the repository
 // returns BadParameterError, ConversionError or InternalError
-func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error) {
+func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, position int, creator string) (*app.WorkItem, error) {
 	wiType, err := r.wir.LoadTypeFromDB(typeID)
 	if err != nil {
 		return nil, errors.NewBadParameterError("type", typeID)
 	}
 	wi := WorkItem{
-		Type:   typeID,
-		Fields: Fields{},
+		Type:     typeID,
+		Fields:   Fields{},
+		Position: position,
 	}
 	fields[SystemCreator] = creator
 	for fieldName, fieldDef := range wiType.Fields {

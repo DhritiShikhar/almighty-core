@@ -86,8 +86,8 @@ func (r *UndoableWorkItemRepository) Delete(ctx context.Context, ID string) erro
 }
 
 // Create implements application.WorkItemRepository
-func (r *UndoableWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error) {
-	result, err := r.wrapped.Create(ctx, typeID, fields, creator)
+func (r *UndoableWorkItemRepository) Create(ctx context.Context, typeID string, fields map[string]interface{}, position int, creator string) (*app.WorkItem, error) {
+	result, err := r.wrapped.Create(ctx, typeID, fields, position, creator)
 	if err != nil {
 		return result, err
 	}

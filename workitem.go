@@ -287,7 +287,7 @@ func (c *WorkitemController) Create(ctx *app.CreateWorkitemContext) error {
 
 	return application.Transactional(c.db, func(appl application.Application) error {
 
-		wi, err := appl.WorkItems().Create(ctx, *wit, wi.Fields, currentUser)
+		wi, err := appl.WorkItems().Create(ctx, *wit, wi.Fields, wi.Position, currentUser)
 		if err != nil {
 			switch err := err.(type) {
 			case errors.BadParameterError:
@@ -302,7 +302,6 @@ func (c *WorkitemController) Create(ctx *app.CreateWorkitemContext) error {
 				return ctx.InternalServerError(jerrors)
 			}
 		}
-
 		wi2 := ConvertWorkItem(ctx.RequestData, wi)
 		resp := &app.WorkItem2Single{
 			Data: wi2,
@@ -388,6 +387,9 @@ func (c *WorkitemController) ConvertJSONAPIToWorkItem(source app.WorkItem2, targ
 		version = v
 	}
 	target.Version = version
+	if source.Attributes["position"] == nil {
+		target.Position = 200
+	}
 
 	if source.Relationships != nil && source.Relationships.Assignees != nil {
 		if source.Relationships.Assignees.Data == nil {
@@ -443,7 +445,8 @@ func ConvertWorkItem(request *goa.RequestData, wi *app.WorkItem, additional ...W
 		ID:   &wi.ID,
 		Type: APIStringTypeWorkItem,
 		Attributes: map[string]interface{}{
-			"version": wi.Version,
+			"version":  wi.Version,
+			"position": wi.Position,
 		},
 		Relationships: &app.WorkItemRelationships{
 			BaseType: &app.RelationBaseType{
