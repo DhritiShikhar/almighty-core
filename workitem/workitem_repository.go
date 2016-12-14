@@ -68,6 +68,13 @@ func (r *GormWorkItemRepository) Load(ctx context.Context, ID string) (*app.Work
 	return result, nil
 }
 
+// LoadHighestPosition returns the work item with the highest position in DB.
+func (r *GormWorkItemRepository) LoadHighestPosition() (int, error) {
+	res := WorkItem{}
+	_ = r.db.Order("position desc").First(&res)
+	return res.Position, nil
+}
+
 // Delete deletes the work item with the given id
 // returns NotFoundError or InternalError
 func (r *GormWorkItemRepository) Delete(ctx context.Context, ID string) error {
@@ -159,10 +166,13 @@ func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fiel
 	if err != nil {
 		return nil, errors.NewBadParameterError("type", typeID)
 	}
+
+	position, err = r.LoadHighestPosition()
+	log.Println(">>>>>>>>>>>>>>>>>", position)
 	wi := WorkItem{
 		Type:     typeID,
 		Fields:   Fields{},
-		Position: position,
+		Position: position + 1,
 	}
 	fields[SystemCreator] = creator
 	for fieldName, fieldDef := range wiType.Fields {

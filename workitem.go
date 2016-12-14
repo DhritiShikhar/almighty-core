@@ -388,7 +388,9 @@ func (c *WorkitemController) ConvertJSONAPIToWorkItem(source app.WorkItem2, targ
 	}
 	target.Version = version
 	if source.Attributes["position"] == nil {
-		target.Position = 200
+		//witem := app.WorkItem{}
+		//witem, err := appl.WorkItems().LoadHighestPosition()
+		//log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>HERE", witem)
 	}
 
 	if source.Relationships != nil && source.Relationships.Assignees != nil {
