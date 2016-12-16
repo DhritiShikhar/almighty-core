@@ -1,6 +1,7 @@
 package workitem
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -59,6 +60,24 @@ func (r *GormWorkItemRepository) Load(ctx context.Context, ID string) (*app.Work
 		return nil, errors.NewInternalError(err.Error())
 	}
 	return convertWorkItemModelToApp(wiType, res)
+}
+
+// LoadHighestOrder returns the highest order
+func (r *GormWorkItemRepository) LoadHighestOrder() (*app.WorkItem, error) {
+	res := WorkItem{}
+	tx := r.db.Order("fields->'order' desc").First(&res)
+	if tx.RecordNotFound() {
+		log.Printf("not found, res=%v", res)
+		return nil, nil
+	}
+	if tx.Error != nil {
+		return nil, errors.NewInternalError(tx.Error.Error())
+	}
+	wiType, err := r.wir.LoadTypeFromDB(res.Type)
+	if err != nil {
+		return nil, errors.NewInternalError(err.Error())
+	}
+	return convertWorkItemModelToApp(wiType, &res)
 }
 
 // Delete deletes the work item with the given id
@@ -121,10 +140,17 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 		if fieldName == SystemCreatedAt {
 			continue
 		}
+		/*if (fieldName == SystemOrder) {
+			newWi.Fields[SystemOrder] :=
+		}*/
+
 		fieldValue := wi.Fields[fieldName]
 		var err error
 		newWi.Fields[fieldName], err = fieldDef.ConvertToModel(fieldName, fieldValue)
 		if err != nil {
+			log.Println(fieldName)
+			log.Println(fieldValue)
+			log.Println("^^^^^^^^^^^^^^^^^^^^^^")
 			return nil, errors.NewBadParameterError(fieldName, fieldValue)
 		}
 	}
@@ -153,6 +179,17 @@ func (r *GormWorkItemRepository) Create(ctx context.Context, typeID string, fiel
 		Fields: Fields{},
 	}
 	fields[SystemCreator] = creator
+
+	// Ordering
+	var o int
+	n, err := r.LoadHighestOrder()
+	if n != nil {
+		o, _ = strconv.Atoi(fmt.Sprintf("%d", n.Fields[SystemOrder]))
+	} else {
+		o = 0
+	}
+	fields[SystemOrder] = o + 1
+
 	for fieldName, fieldDef := range wiType.Fields {
 		if fieldName == SystemCreatedAt {
 			continue
