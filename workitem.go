@@ -286,7 +286,6 @@ func (c *WorkitemController) Create(ctx *app.CreateWorkitemContext) error {
 
 	return application.Transactional(c.db, func(appl application.Application) error {
 		ConvertJSONAPIToWorkItem(appl, *ctx.Payload.Data, &wi)
-
 		wi, err := appl.WorkItems().Create(ctx, *wit, wi.Fields, currentUser)
 		if err != nil {
 			switch err := err.(type) {

@@ -111,6 +111,9 @@ func getMigrations() migrations {
 
 	// Version 11
 	m = append(m, steps{executeSQLFile("011-projects.sql")})
+
+	// Version 12
+	m = append(m, steps{executeSQLFile("012-order.sql")})
 	// Version N
 	//
 	// In order to add an upgrade, simply append an array of MigrationFunc to the
@@ -327,6 +330,7 @@ func createOrUpdateSystemPlannerItemType(ctx context.Context, witr *workitem.Gor
 		workitem.SystemCreator:      app.FieldDefinition{Type: &app.FieldType{Kind: "user"}, Required: true},
 		workitem.SystemRemoteItemID: app.FieldDefinition{Type: &app.FieldType{Kind: "string"}, Required: false},
 		workitem.SystemCreatedAt:    app.FieldDefinition{Type: &app.FieldType{Kind: "instant"}, Required: false},
+		workitem.SystemOrder:        app.FieldDefinition{Type: &app.FieldType{Kind: "integer"}, Required: false},
 		workitem.SystemAssignees: app.FieldDefinition{
 			Type: &app.FieldType{
 				ComponentType: &stUser,
