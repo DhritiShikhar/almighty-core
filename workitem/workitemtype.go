@@ -38,6 +38,10 @@ const (
 	SystemStateInProgress = "in progress"
 	SystemStateResolved   = "resolved"
 	SystemStateClosed     = "closed"
+
+	Order        = "order"
+	Previousitem = "previousitem"
+	Nextitem     = "nextitem"
 )
 
 // WorkItemType represents a work item type as it is stored in the db
