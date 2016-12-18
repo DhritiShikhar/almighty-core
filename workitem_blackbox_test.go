@@ -68,18 +68,10 @@ func TestGetWorkItem(t *testing.T) {
 	}
 	wi.Data.Attributes[workitem.SystemTitle] = "Updated Test WI"
 
-	/* Order
-	_, result2 := test.CreateWorkitemCreated(t, svc.Context, svc, controller, &payload)
-	_, result3 := test.CreateWorkitemCreated(t, svc.Context, svc, controller, &payload)
-	r2, _ := strconv.Atoi(fmt.Sprintf("%v", *result2.Data.ID))
-	r3, _ := strconv.Atoi(fmt.Sprintf("%v", *result3.Data.ID))*/
-
 	payload2 := minimumRequiredUpdatePayload()
 	payload2.Data.ID = wi.Data.ID
 	payload2.Data.Attributes = wi.Data.Attributes
 
-	//payload2.Data.Attributes["previousitem"] = r2
-	//payload2.Data.Attributes["nextitem"] = r3
 	_, updated := test.UpdateWorkitemOK(t, nil, nil, controller, *wi.Data.ID, &payload2)
 	assert.NotNil(t, updated.Data.Attributes[workitem.SystemCreatedAt])
 
@@ -93,7 +85,7 @@ func TestGetWorkItem(t *testing.T) {
 		t.Errorf("expected title %s, but got %s", "Updated Test WI", updated.Data.Attributes[workitem.SystemTitle])
 	}
 
-	// Testing order
+	// Testing order of workitems
 	_, result2 := test.CreateWorkitemCreated(t, svc.Context, svc, controller, &payload)
 	_, result3 := test.CreateWorkitemCreated(t, svc.Context, svc, controller, &payload)
 	r2, _ := strconv.Atoi(fmt.Sprintf("%v", *result2.Data.ID))
