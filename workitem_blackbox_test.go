@@ -85,7 +85,6 @@ func TestGetWorkItem(t *testing.T) {
 		t.Errorf("expected title %s, but got %s", "Updated Test WI", updated.Data.Attributes[workitem.SystemTitle])
 	}
 
-	// Testing order of workitems
 	_, result2 := test.CreateWorkitemCreated(t, svc.Context, svc, controller, &payload)
 	_, result3 := test.CreateWorkitemCreated(t, svc.Context, svc, controller, &payload)
 	r2, _ := strconv.Atoi(fmt.Sprintf("%v", *result2.Data.ID))
