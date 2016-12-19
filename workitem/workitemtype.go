@@ -39,7 +39,7 @@ const (
 	SystemStateResolved   = "resolved"
 	SystemStateClosed     = "closed"
 
-	Order        = "order"
+	SystemOrder  = "order"
 	Previousitem = "previousitem"
 	Nextitem     = "nextitem"
 )
