@@ -135,7 +135,7 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 	var order float64
 	if wi.Fields[Previousitem] == nil && wi.Fields[Nextitem] == nil {
 		// Order is not changed
-		order, err = strconv.ParseFloat(fmt.Sprintf("%v", res.Fields[SystemOrder]), 64)
+		order, err = strconv.ParseFloat(fmt.Sprintf("%v", wi.Fields[SystemOrder]), 64)
 		if err != nil {
 			return nil, errors.NewBadParameterError("data.attributes.order", res.Fields[SystemOrder])
 		}
@@ -190,14 +190,6 @@ func (r *GormWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) (*ap
 		order = (prevorder + nextorder) / 2
 	}
 	wi.Fields[SystemOrder] = order
-
-	newWi := WorkItem{
-		ID:      id,
-		Type:    wi.Type,
-		Version: wi.Version + 1,
-		Fields:  Fields{},
-	}
-
 	for fieldName, fieldDef := range wiType.Fields {
 		if fieldName == SystemCreatedAt {
 			continue

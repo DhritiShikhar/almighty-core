@@ -120,6 +120,5 @@ func (s *workItemRepoBlackBoxTest) TestSaveForUnchangedCreatedDate() {
 	wi, err = s.repo.Load(context.Background(), wi.ID)
 
 	wiNew, err := s.repo.Save(context.Background(), *wi)
-
 	assert.Equal(s.T(), wi.Fields[workitem.SystemCreatedAt], wiNew.Fields[workitem.SystemCreatedAt])
 }
