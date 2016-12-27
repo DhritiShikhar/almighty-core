@@ -40,8 +40,8 @@ const (
 	SystemStateClosed     = "closed"
 
 	SystemOrder  = "order"
-	Previousitem = "previousItem"
-	Nextitem     = "nextItem"
+	PreviousItem = "previousitem"
+	NextItem     = "nextitem"
 )
 
 // WorkItemType represents a work item type as it is stored in the db
