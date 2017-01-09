@@ -113,7 +113,7 @@ func JSONResourceObject(name string, attributes *d.UserTypeDefinition, relations
 }
 
 // JSONList creates a UserTypeDefinition
-func JSONList(name, description string, data *d.UserTypeDefinition, links *d.UserTypeDefinition, meta *d.UserTypeDefinition) *d.MediaTypeDefinition {
+func JSONList(name, description string, data *d.UserTypeDefinition, meta *d.UserTypeDefinition, links ...*d.UserTypeDefinition) *d.MediaTypeDefinition {
 	return a.MediaType("application/vnd."+strings.ToLower(name)+"list+json", func() {
 		a.UseTrait("jsonapi-media-type")
 		a.TypeName(name + "List")

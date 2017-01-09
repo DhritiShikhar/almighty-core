@@ -60,8 +60,8 @@ func (r *UndoableWorkItemRepository) Save(ctx context.Context, wi app.WorkItem) 
 }
 
 // Reorder implements application.WorkItemRepository
-func (r *UndoableWorkItemRepository) Reorder(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error) {
-	id, err := strconv.ParseUint(wi.ID, 10, 64)
+func (r *UndoableWorkItemRepository) Reorder(ctx context.Context, reorderIds []string) ([]*app.WorkItem, int, error) {
+	/*id, err := strconv.ParseUint(wi.ID, 10, 64)
 	if err != nil {
 		// treating this as a not found error: the fact that we're using number internal is implementation detail
 		return nil, errors.NewNotFoundError("work item", wi.ID)
@@ -80,8 +80,8 @@ func (r *UndoableWorkItemRepository) Reorder(ctx context.Context, wi app.WorkIte
 			db = db.Save(&old)
 			return db.Error
 		})
-	}
-	return res, err
+	}*/
+	return r.wrapped.Reorder(ctx, reorderIds)
 }
 
 // Delete implements application.WorkItemRepository

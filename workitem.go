@@ -138,34 +138,19 @@ func (c *WorkitemController) Update(ctx *app.UpdateWorkitemContext) error {
 // Reorder reorders the workitem
 func (c *WorkitemController) Reorder(ctx *app.ReorderWorkitemContext) error {
 	return application.Transactional(c.db, func(appl application.Application) error {
-
-		if ctx.Payload == nil || ctx.Payload.Data == nil || ctx.Payload.Data.ID == nil {
-			jerrors, _ := jsonapi.ErrorToJSONAPIErrors(errors.NewBadParameterError("data.id", nil))
-			return ctx.NotFound(jerrors)
-		}
-
-		wi, err := appl.WorkItems().Load(ctx, *ctx.Payload.Data.ID)
-		if err != nil {
-			jerrors, _ := jsonapi.ErrorToJSONAPIErrors(goa.ErrNotFound(fmt.Sprintf("Error reordering work item: %s", err.Error())))
-			return ctx.NotFound(jerrors)
-		}
-		err = ConvertJSONAPIToWorkItem(appl, *ctx.Payload.Data, wi)
-		if err != nil {
-			jerrors, _ := jsonapi.ErrorToJSONAPIErrors(goa.ErrBadRequest(fmt.Sprintf("Error reordering work item: %s", err.Error())))
-			return ctx.BadRequest(jerrors)
-		}
-		wi, err = appl.WorkItems().Reorder(ctx, *wi)
+		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", ctx)
+		result, tc, err := appl.WorkItems().Reorder(ctx, ctx.Params["reorder"])
 		if err != nil {
 			switch err := err.(type) {
 			case errors.BadParameterError:
 				jerrors, _ := jsonapi.ErrorToJSONAPIErrors(goa.ErrBadRequest(fmt.Sprintf("Error reordering work item: %s", err.Error())))
 				return ctx.BadRequest(jerrors)
-			case errors.NotFoundError:
+			/*case errors.NotFoundError:
 				jerrors, _ := jsonapi.ErrorToJSONAPIErrors(goa.ErrNotFound(err.Error()))
 				return ctx.NotFound(jerrors)
 			case errors.VersionConflictError:
 				jerrors, _ := jsonapi.ErrorToJSONAPIErrors(goa.ErrBadRequest(fmt.Sprintf("Error reordering work item: %s", err.Error())))
-				return ctx.BadRequest(jerrors)
+				return ctx.BadRequest(jerrors)*/
 			default:
 				log.Printf("Error reordering work items: %s", err.Error())
 				jerrors, _ := jsonapi.ErrorToJSONAPIErrors(goa.ErrInternal(err.Error()))
@@ -173,15 +158,13 @@ func (c *WorkitemController) Reorder(ctx *app.ReorderWorkitemContext) error {
 			}
 		}
 
-		wi2 := ConvertWorkItem(ctx.RequestData, wi)
-		resp := &app.WorkItem2Single{
-			Data: wi2,
-			Links: &app.WorkItemLinks{
-				Self: buildAbsoluteURL(ctx.RequestData),
-			},
+		resp := app.WorkItem2List{
+			Links: &app.PagingLinks{},
+			Meta:  &app.WorkItemListResponseMeta{TotalCount: tc},
+			Data:  ConvertWorkItems(ctx.RequestData, result),
 		}
 
-		return ctx.OK(resp)
+		return ctx.OK(&resp)
 	})
 }
 

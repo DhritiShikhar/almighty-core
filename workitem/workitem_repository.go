@@ -17,7 +17,7 @@ import (
 type WorkItemRepository interface {
 	Load(ctx context.Context, ID string) (*app.WorkItem, error)
 	Save(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error)
-	Reorder(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error)
+	Reorder(ctx context.Context, reorderIds []string) ([]*app.WorkItem, int, error)
 	Delete(ctx context.Context, ID string) error
 	Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error)
 	List(ctx context.Context, criteria criteria.Expression, start *int, length *int) ([]*app.WorkItem, uint64, error)
@@ -105,10 +105,40 @@ func (r *GormWorkItemRepository) Delete(ctx context.Context, ID string) error {
 
 // Reorder reorders the given work item in storage. Version must be the same as the one int the stored version
 // returns NotFoundError, VersionConflictError, ConversionError or InternalError
-func (r *GormWorkItemRepository) Reorder(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error) {
-	res := WorkItem{}
-	id, err := strconv.ParseUint(wi.ID, 10, 64)
-	if err != nil || id == 0 {
+func (r *GormWorkItemRepository) Reorder(ctx context.Context, reorderIds []string) ([]*app.WorkItem, int, error) {
+
+	//result := []WorkItem{}
+
+	for i := 0; i < len(reorderIds); i++ {
+		value := WorkItem{}
+		log.Printf("looking for id %d", reorderIds[i])
+		tx := r.db.First(&value, reorderIds[i])
+		if tx.RecordNotFound() {
+			log.Printf("not found, res=%v", value)
+			return nil, 0, errors.NewNotFoundError("work item", reorderIds[i])
+		}
+		//if reorderIds.Version != wi.Version {
+		//	return nil, 0, errors.NewVersionConflictError("version conflict")
+		//}
+	}
+
+	res := make([]*app.WorkItem, len(reorderIds))
+
+	/*for index, value := range result {
+		wiType, err := r.wir.LoadTypeFromDB(value.Type)
+		if err != nil {
+			return nil, 0, errors.NewInternalError(err.Error())
+		}
+		res[index], err = convertWorkItemModelToApp(wiType, &value)
+	}*/
+
+	return res, len(reorderIds), nil
+
+	/*res := WorkItem{}
+	log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", reorderIds)
+
+	beforeId, err := strconv.ParseUint(wi.ID, 10, 64)
+	if err != nil || beforeId == 0 {
 		return nil, errors.NewNotFoundError("work item", wi.ID)
 	}
 
@@ -125,6 +155,21 @@ func (r *GormWorkItemRepository) Reorder(ctx context.Context, wi app.WorkItem) (
 		return nil, errors.NewVersionConflictError("version conflict")
 	}
 
+	for i := 0; i < len(reorderIds); i++ {
+		log.Printf("looking for id %d", reorderIds[i])
+		tx := r.db.First(&res, reorderIds[i])
+		if tx.RecordNotFound() {
+			log.Printf("not found, res=%v", res)
+			return nil, errors.NewNotFoundError("work item", reorderIds[i])
+		}
+		if tx.Error != nil {
+			return nil, errors.NewInternalError(err.Error())
+		}
+		if res.Version != wi.Version {
+			return nil, errors.NewVersionConflictError("version conflict")
+		}
+	}
+
 	wiType, err := r.wir.LoadTypeFromDB(wi.Type)
 	if err != nil {
 		return nil, errors.NewBadParameterError("Type", wi.Type)
@@ -132,8 +177,9 @@ func (r *GormWorkItemRepository) Reorder(ctx context.Context, wi app.WorkItem) (
 
 	res.Version = res.Version + 1
 	res.Type = wi.Type
-	res.Fields = Fields{}
-	var order float64
+	res.Fields = Fields{}*/
+
+	/*var order float64
 
 	if wi.Fields[PreviousItem] == nil && wi.Fields[NextItem] == nil {
 		// Order is not changed
@@ -191,8 +237,10 @@ func (r *GormWorkItemRepository) Reorder(ctx context.Context, wi app.WorkItem) (
 
 		order = (prevorder + nextorder) / 2
 	}
-	wi.Fields[SystemOrder] = order
-	for fieldName, fieldDef := range wiType.Fields {
+	wi.Fields[SystemOrder] = order*/
+	//wi.Fields[SystemOrder] = 32
+
+	/*for fieldName, fieldDef := range wiType.Fields {
 		if fieldName == SystemCreatedAt {
 			continue
 		}
@@ -213,7 +261,7 @@ func (r *GormWorkItemRepository) Reorder(ctx context.Context, wi app.WorkItem) (
 		return nil, errors.NewVersionConflictError("version conflict")
 	}
 	log.Printf("reordered item to %v\n", res)
-	return convertWorkItemModelToApp(wiType, &res)
+	return convertWorkItemModelToApp(wiType, &res)*/
 }
 
 // Save updates the given work item in storage. Version must be the same as the one int the stored version

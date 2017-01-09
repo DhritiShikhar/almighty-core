@@ -59,8 +59,8 @@ var workItemLinks = a.Type("WorkItemLinks", func() {
 var workItemList = JSONList(
 	"WorkItem2", "Holds the paginated response to a work item list request",
 	workItem2,
-	pagingLinks,
-	meta)
+	meta,
+	pagingLinks)
 
 // workItemSingle is the media type for work items
 var workItemSingle = JSONSingle(
@@ -153,12 +153,15 @@ var _ = a.Resource("workitem", func() {
 	a.Action("reorder", func() {
 		a.Security("jwt")
 		a.Routing(
-			a.PATCH("/reorder"),
+			a.PATCH("/before/:id?reorder={id}"),
 		)
-		a.Description("reorder the work item with the given id.")
-		a.Payload(workItemSingle)
+		a.Description("reorder the work items before the given id.")
+		a.Params(func() {
+			a.Param("reorderIds", a.ArrayOf(d.String), "ids of all the workitems to be reordered")
+		})
+		a.Payload(workItemList)
 		a.Response(d.OK, func() {
-			a.Media(workItemSingle)
+			a.Media(workItemList)
 		})
 		a.Response(d.BadRequest, JSONAPIErrors)
 		a.Response(d.InternalServerError, JSONAPIErrors)
