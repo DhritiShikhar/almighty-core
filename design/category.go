@@ -6,7 +6,7 @@ import (
 )
 
 var category = a.Type("Category", func() {
-	a.Description("category of workitem types")
+	a.Description("JSONAPI store for the data of a category.")
 	a.Attribute("type", d.String, func() {
 		a.Enum("category")
 	})
@@ -31,7 +31,7 @@ var categoryAttributes = a.Type("CategoryAttributes", func() {
 
 var categoryRelationships = a.Type("CategoryRelations", func() {
 	a.Attribute("space", relationGeneric, "This defines the owning space")
-	a.Attribute("workitemstypes", relationGeneric, "This defines the workitemtypes associated with the category")
+	a.Attribute("workitemstypes", relationGeneric, "This lines the workitemtypes associated with the category")
 })
 
 var categoryList = JSONList(
@@ -45,9 +45,9 @@ var categorySingle = JSONSingle(
 	category,
 	nil)
 
-var _ = a.Resource("category", func() {
-	a.BasePath("/categories")
-	a.Action("list", func() {
+var _ = a.Resource("space-category", func() {
+	a.Parent("space")
+	/*a.Action("list", func() {
 		a.Routing(
 			a.GET("categories"),
 		)
@@ -91,18 +91,15 @@ var _ = a.Resource("category", func() {
 		a.Response(d.InternalServerError, JSONAPIErrors)
 		a.Response(d.NotFound, JSONAPIErrors)
 		a.Response(d.Unauthorized, JSONAPIErrors)
-	})
+	})*/
 	a.Action("create", func() {
 		a.Security("jwt")
 		a.Routing(
-			a.PATCH("/:categoryID"),
+			a.POST("categories"),
 		)
-		a.Description("update the category for the given id.")
-		a.Params(func() {
-			a.Param("categoryID", d.String, "Category Identifier")
-		})
+		a.Description("Create category.")
 		a.Payload(categorySingle)
-		a.Response(d.OK, func() {
+		a.Response(d.Created, "/categories/.*", func() {
 			a.Media(categorySingle)
 		})
 		a.Response(d.BadRequest, JSONAPIErrors)
@@ -110,7 +107,7 @@ var _ = a.Resource("category", func() {
 		a.Response(d.NotFound, JSONAPIErrors)
 		a.Response(d.Unauthorized, JSONAPIErrors)
 	})
-	a.Action("delete", func() {
+	/*a.Action("delete", func() {
 		a.Security("jwt")
 		a.Routing(
 			a.PATCH("/:categoryID"),
@@ -127,5 +124,5 @@ var _ = a.Resource("category", func() {
 		a.Response(d.InternalServerError, JSONAPIErrors)
 		a.Response(d.NotFound, JSONAPIErrors)
 		a.Response(d.Unauthorized, JSONAPIErrors)
-	})
+	})*/
 })
