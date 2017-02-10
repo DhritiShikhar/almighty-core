@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/almighty/almighty-core/app"
 	"github.com/almighty/almighty-core/application"
 	"github.com/almighty/almighty-core/category"
 	"github.com/almighty/almighty-core/rest"
 	"github.com/goadesign/goa"
-	uuid "github.com/satori/go.uuid"
 )
 
 // CategoryController implements the category resource.
@@ -112,28 +112,37 @@ func validateCreateCategory(ctx *app.CreateCategoryContext) error {
 	}
 }*/
 
+// CategoryConvertFunc is a open ended function to add additional links/data/relations to a Category during conversion from internal to API
+type CategoryConvertFunc func(*goa.RequestData, *category.Category, *app.Category)
+
+// ConvertCategories converts between internal and external REST representation
+func ConvertCategories(request *goa.RequestData, Categories []*category.Category, additional ...CategoryConvertFunc) []*app.Category {
+	var cs = []*app.Category{}
+	for _, c := range Categories {
+		cs = append(cs, ConvertCategory(request, c, additional...))
+	}
+	return cs
+}
+
 // ConvertCategory converts between internal and external REST representation
 func ConvertCategory(request *goa.RequestData, c *category.Category, additional ...CategoryConvertFunc) *app.Category {
-	categoryType := c.APIStringTypeIteration
+	categoryType := category.APIStringTypeCategory
 	spaceType := "spaces"
 
 	spaceID := c.SpaceID.String()
 
 	selfURL := rest.AbsoluteURL(request, app.CategoryHref(c.ID))
 	spaceSelfURL := rest.AbsoluteURL(request, app.SpaceHref(spaceID))
-	workitemsRelatedURL := rest.AbsoluteURL(request, app.WorkitemHref("?filter[iteration]="+itr.ID.String()))
+	workitemtypesRelatedURL := rest.AbsoluteURL(request, app.WorkitemtypeHref("?filter[category]="+c.ID.String()))
 
-	i := &app.Iteration{
-		Type: iterationType,
-		ID:   &itr.ID,
-		Attributes: &app.IterationAttributes{
-			Name:        &itr.Name,
-			StartAt:     itr.StartAt,
-			EndAt:       itr.EndAt,
-			Description: itr.Description,
-			State:       &itr.State,
+	c1 := &app.Category{
+		Type: categoryType,
+		ID:   &c.ID,
+		Attributes: &app.CategoryAttributes{
+			Name:        &c.Name,
+			Description: &c.Description,
 		},
-		Relationships: &app.IterationRelations{
+		Relationships: &app.CategoryRelations{
 			Space: &app.RelationGeneric{
 				Data: &app.GenericData{
 					Type: &spaceType,
@@ -143,9 +152,9 @@ func ConvertCategory(request *goa.RequestData, c *category.Category, additional 
 					Self: &spaceSelfURL,
 				},
 			},
-			Workitems: &app.RelationGeneric{
+			Workitemstypes: &app.RelationGeneric{
 				Links: &app.GenericLinks{
-					Related: &workitemsRelatedURL,
+					Related: &workitemtypesRelatedURL,
 				},
 			},
 		},
@@ -153,21 +162,8 @@ func ConvertCategory(request *goa.RequestData, c *category.Category, additional 
 			Self: &selfURL,
 		},
 	}
-	if itr.ParentID != uuid.Nil {
-		parentSelfURL := rest.AbsoluteURL(request, app.IterationHref(itr.ParentID))
-		parentID := itr.ParentID.String()
-		i.Relationships.Parent = &app.RelationGeneric{
-			Data: &app.GenericData{
-				Type: &iterationType,
-				ID:   &parentID,
-			},
-			Links: &app.GenericLinks{
-				Self: &parentSelfURL,
-			},
-		}
-	}
 	for _, add := range additional {
-		add(request, itr, i)
+		add(request, c, c1)
 	}
-	return i
+	return c1
 }

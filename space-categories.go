@@ -39,17 +39,17 @@ func (c *SpaceCategoryController) Create(ctx *app.CreateSpaceCategoryContext) er
 	}
 
 	// Validate Request
-	err = validateCreateCategory(ctx)
-	if err != nil {
-		return jsonapi.JSONErrorResponse(ctx, err)
+	if ctx.Payload.Data == nil {
+		return jsonapi.JSONErrorResponse(ctx, errors.NewBadParameterError("data", nil).Expected("not nil"))
+	}
+	reqCategory := ctx.Payload.Data
+	if reqCategory.Attributes.Name == nil {
+		return jsonapi.JSONErrorResponse(ctx, errors.NewBadParameterError("data.attributes.name", nil).Expected("not nil"))
 	}
 
-	categoryID, err := uuid.FromString(ctx.ID)
 	if err != nil {
 		return jsonapi.JSONErrorResponse(ctx, goa.ErrNotFound(err.Error()))
 	}
-
-	reqCategory := ctx.Payload.Data
 
 	return application.Transactional(c.db, func(appl application.Application) error {
 		_, err = appl.Spaces().Load(ctx, spaceID)
@@ -76,7 +76,7 @@ func (c *SpaceCategoryController) Create(ctx *app.CreateSpaceCategoryContext) er
 			Data: ConvertCategory(ctx.RequestData, &newCategory),
 		}
 
-		res := &app.CategorySingle{}
+		res = &app.CategorySingle{}
 		ctx.ResponseData.Header().Set("Location", rest.AbsoluteURL(ctx.RequestData, app.CategoryHref(res.Data.ID)))
 		return ctx.Created(res)
 	})
@@ -125,15 +125,3 @@ func (c *SpaceCategoryController) Update(ctx *app.UpdateSpaceCategoryContext) er
 	res := &app.CategorySingle{}
 	return ctx.OK(res)
 }*/
-
-func validateCreateCategory(ctx *app.CreateCategoryContext) error {
-	if ctx.Payload.Data == nil {
-		return errors.NewBadParameterError("data", nil).Expected("not nil")
-	}
-	if ctx.Payload.Data.Attributes == nil {
-		return errors.NewBadParameterError("data.attributes", nil).Expected("not nil")
-	}
-	if ctx.Payload.Data.Name == nil {
-		return errors.NewBadParameterError("data.name", nil).Expected("not nil")
-	}
-}

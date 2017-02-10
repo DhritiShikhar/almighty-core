@@ -11,6 +11,11 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// Defines "type" string to be used while validating jsonapi spec based payload
+const (
+	APIStringTypeCategory = "categories"
+)
+
 // Category describes a single category
 type Category struct {
 	gormsupport.Lifecycle
