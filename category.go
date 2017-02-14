@@ -4,8 +4,11 @@ import (
 	"github.com/almighty/almighty-core/app"
 	"github.com/almighty/almighty-core/application"
 	"github.com/almighty/almighty-core/category"
+	"github.com/almighty/almighty-core/jsonapi"
+	"github.com/almighty/almighty-core/login"
 	"github.com/almighty/almighty-core/rest"
 	"github.com/goadesign/goa"
+	uuid "github.com/satori/go.uuid"
 )
 
 // CategoryController implements the category resource.
@@ -76,4 +79,60 @@ func ConvertCategory(request *goa.RequestData, c *category.Category, additional 
 		add(request, c, c1)
 	}
 	return c1
+}
+
+// Show runs the show action.
+func (c *CategoryController) Show(ctx *app.ShowCategoryContext) error {
+	id, err := uuid.FromString(ctx.CategoryID)
+	if err != nil {
+		return jsonapi.JSONErrorResponse(ctx, goa.ErrNotFound(err.Error()))
+	}
+	return application.Transactional(c.db, func(appl application.Application) error {
+		c, err := appl.Categories().Load(ctx, id)
+		if err != nil {
+			return jsonapi.JSONErrorResponse(ctx, err)
+		}
+
+		res := &app.CategorySingle{}
+		res.Data = ConvertCategory(
+			ctx.RequestData,
+			c)
+
+		return ctx.OK(res)
+	})
+}
+
+// Update runs the update action.
+func (c *CategoryController) Update(ctx *app.UpdateCategoryContext) error {
+	_, err := login.ContextIdentity(ctx)
+	if err != nil {
+		return jsonapi.JSONErrorResponse(ctx, goa.ErrUnauthorized(err.Error()))
+	}
+	id, err := uuid.FromString(ctx.CategoryID)
+	if err != nil {
+		return jsonapi.JSONErrorResponse(ctx, goa.ErrNotFound(err.Error()))
+	}
+
+	return application.Transactional(c.db, func(appl application.Application) error {
+		cat, err := appl.Categories().Load(ctx.Context, id)
+		if err != nil {
+			return jsonapi.JSONErrorResponse(ctx, err)
+		}
+		if ctx.Payload.Data.Attributes.Name != nil {
+			cat.Name = *ctx.Payload.Data.Attributes.Name
+		}
+		if ctx.Payload.Data.Attributes.Description != nil {
+			cat.Description = *ctx.Payload.Data.Attributes.Description
+		}
+		cat, err = appl.Categories().Save(ctx.Context, *cat)
+		if err != nil {
+			return jsonapi.JSONErrorResponse(ctx, err)
+		}
+
+		response := app.CategorySingle{
+			Data: ConvertCategory(ctx.RequestData, cat),
+		}
+
+		return ctx.OK(&response)
+	})
 }

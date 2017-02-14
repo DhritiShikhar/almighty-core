@@ -72,9 +72,33 @@ func (c *SpaceCategoriesController) Create(ctx *app.CreateSpaceCategoriesContext
 		res := &app.CategorySingle{
 			Data: ConvertCategory(ctx.RequestData, &newCategory),
 		}
-
-		res = &app.CategorySingle{}
 		ctx.ResponseData.Header().Set("Location", rest.AbsoluteURL(ctx.RequestData, app.CategoryHref(res.Data.ID)))
 		return ctx.Created(res)
+	})
+}
+
+// List runs the create action.
+func (c *SpaceCategoriesController) List(ctx *app.ListSpaceCategoriesContext) error {
+	spaceID, err := uuid.FromString(ctx.ID)
+	if err != nil {
+		return jsonapi.JSONErrorResponse(ctx, goa.ErrNotFound(err.Error()))
+	}
+
+	return application.Transactional(c.db, func(appl application.Application) error {
+
+		_, err = appl.Spaces().Load(ctx, spaceID)
+		if err != nil {
+			return jsonapi.JSONErrorResponse(ctx, goa.ErrNotFound(err.Error()))
+		}
+
+		categories, err := appl.Categories().List(ctx, spaceID)
+		if err != nil {
+			return jsonapi.JSONErrorResponse(ctx, err)
+		}
+
+		res := &app.CategoryList{}
+		res.Data = ConvertCategories(ctx.RequestData, categories)
+
+		return ctx.OK(res)
 	})
 }

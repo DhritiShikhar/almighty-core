@@ -62,4 +62,53 @@ var _ = a.Resource("space-categories", func() {
 		a.Response(d.NotFound, JSONAPIErrors)
 		a.Response(d.Unauthorized, JSONAPIErrors)
 	})
+	a.Action("list", func() {
+		a.Routing(
+			a.GET("categories"),
+		)
+		a.Description("List categories.")
+		a.Response(d.OK, func() {
+			a.Media(categoryList)
+		})
+		a.Response(d.BadRequest, JSONAPIErrors)
+		a.Response(d.NotFound, JSONAPIErrors)
+		a.Response(d.InternalServerError, JSONAPIErrors)
+	})
+})
+
+var _ = a.Resource("category", func() {
+	a.BasePath("/categories")
+	a.Action("show", func() {
+		a.Routing(
+			a.GET("/:categoryID"),
+		)
+		a.Description("Retrieve category with given id.")
+		a.Params(func() {
+			a.Param("categoryID", d.String, "Category Identifier")
+		})
+		a.Response(d.OK, func() {
+			a.Media(categorySingle)
+		})
+		a.Response(d.BadRequest, JSONAPIErrors)
+		a.Response(d.InternalServerError, JSONAPIErrors)
+		a.Response(d.NotFound, JSONAPIErrors)
+	})
+	a.Action("update", func() {
+		a.Security("jwt")
+		a.Routing(
+			a.PATCH("/:categoryID"),
+		)
+		a.Description("update the category for the given id.")
+		a.Params(func() {
+			a.Param("categoryID", d.String, "Category Identifier")
+		})
+		a.Payload(categorySingle)
+		a.Response(d.OK, func() {
+			a.Media(categorySingle)
+		})
+		a.Response(d.BadRequest, JSONAPIErrors)
+		a.Response(d.InternalServerError, JSONAPIErrors)
+		a.Response(d.NotFound, JSONAPIErrors)
+		a.Response(d.Unauthorized, JSONAPIErrors)
+	})
 })
