@@ -252,6 +252,10 @@ func main() {
 	renderCtrl := NewRenderController(service)
 	app.MountRenderController(service, renderCtrl)
 
+	// Mount "spacecategories" controller
+	spaceCategoryCtrl := NewSpaceCategoriesController(service, appDB)
+	app.MountSpaceCategoriesController(service, spaceCategoryCtrl)
+
 	fmt.Println("Git Commit SHA: ", Commit)
 	fmt.Println("UTC Build Time: ", BuildTime)
 	fmt.Println("UTC Start Time: ", StartTime)

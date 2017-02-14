@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/almighty/almighty-core/account"
+	"github.com/almighty/almighty-core/category"
 	"github.com/almighty/almighty-core/comment"
 	"github.com/almighty/almighty-core/iteration"
 	"github.com/almighty/almighty-core/space"
@@ -23,6 +24,7 @@ type Application interface {
 	Comments() comment.Repository
 	Spaces() space.Repository
 	Iterations() iteration.Repository
+	Categories() category.Repository
 	Users() account.UserRepository
 }
 
