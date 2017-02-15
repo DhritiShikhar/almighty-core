@@ -53,7 +53,7 @@ func ConvertCategory(request *goa.RequestData, c *category.Category, additional 
 		ID:   &c.ID,
 		Attributes: &app.CategoryAttributes{
 			Name:        &c.Name,
-			Description: &c.Description,
+			Description: c.Description,
 		},
 		Relationships: &app.CategoryRelations{
 			Space: &app.RelationGeneric{
@@ -122,7 +122,7 @@ func (c *CategoryController) Update(ctx *app.UpdateCategoryContext) error {
 			cat.Name = *ctx.Payload.Data.Attributes.Name
 		}
 		if ctx.Payload.Data.Attributes.Description != nil {
-			cat.Description = *ctx.Payload.Data.Attributes.Description
+			cat.Description = ctx.Payload.Data.Attributes.Description
 		}
 		cat, err = appl.Categories().Save(ctx.Context, *cat)
 		if err != nil {

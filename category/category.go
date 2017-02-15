@@ -14,7 +14,7 @@ import (
 
 // Defines "type" string to be used while validating jsonapi spec based payload
 const (
-	APIStringTypeCategory = "categories"
+	APIStringTypeCategory = "category"
 )
 
 // Category describes a single category
@@ -23,7 +23,7 @@ type Category struct {
 	ID          uuid.UUID `sql:"type:uuid default uuid_generate_v4()" gorm:"primary_key"`
 	SpaceID     uuid.UUID `sql:"type:uuid"`
 	Name        string
-	Description string
+	Description *string
 }
 
 // TableName overrides the table name settings in Gorm to force a specific table name

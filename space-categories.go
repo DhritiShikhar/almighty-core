@@ -44,10 +44,6 @@ func (c *SpaceCategoriesController) Create(ctx *app.CreateSpaceCategoriesContext
 		return jsonapi.JSONErrorResponse(ctx, errors.NewBadParameterError("data.attributes.name", nil).Expected("not nil"))
 	}
 
-	if err != nil {
-		return jsonapi.JSONErrorResponse(ctx, goa.ErrNotFound(err.Error()))
-	}
-
 	return application.Transactional(c.db, func(appl application.Application) error {
 		_, err = appl.Spaces().Load(ctx, spaceID)
 		if err != nil {
@@ -60,7 +56,7 @@ func (c *SpaceCategoriesController) Create(ctx *app.CreateSpaceCategoriesContext
 		}
 
 		if reqCategory.Attributes.Description != nil {
-			newCategory.Description = *reqCategory.Attributes.Description
+			newCategory.Description = reqCategory.Attributes.Description
 		}
 
 		err = appl.Categories().Create(ctx, &newCategory)
