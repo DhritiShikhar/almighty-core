@@ -30,10 +30,12 @@ var workItem = a.MediaType("application/vnd.workitem+json", func() {
 	a.Description("A work item hold field values according to a given field type")
 	a.Attribute("id", d.String, "unique id per installation")
 	a.Attribute("version", d.Integer, "Version for optimistic concurrency control")
+	a.Attribute("position", d.Number, "Position of workitem")
 	a.Attribute("type", d.String, "Name of the type of this work item")
 	a.Attribute("fields", a.HashOf(d.String, d.Any), "The field values, according to the field type")
 
 	a.Required("id")
+	a.Required("position")
 	a.Required("version")
 	a.Required("type")
 	a.Required("fields")
@@ -41,6 +43,7 @@ var workItem = a.MediaType("application/vnd.workitem+json", func() {
 	a.View("default", func() {
 		a.Attribute("id")
 		a.Attribute("version")
+		a.Attribute("position")
 		a.Attribute("type")
 		a.Attribute("fields")
 	})
@@ -57,6 +60,14 @@ var meta = a.Type("workItemListResponseMeta", func() {
 	a.Attribute("totalCount", d.Integer)
 
 	a.Required("totalCount")
+})
+
+// position represents the ID of the workitem above which the to-be-reordered workitem(s) should be placed
+var position = a.Type("workItemReorderPosition", func() {
+	a.Description("Position represents the ID of the workitem above which the to-be-reordered workitem(s) should be placed")
+	a.Attribute("above", d.String, "ID of the workitem above which the to-be-reordered workitem(s) should be placed")
+
+	a.Required("above")
 })
 
 // fieldDefinition defines the possible values for a field in a work item type
