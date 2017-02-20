@@ -20,7 +20,7 @@ import (
 type WorkItemRepository interface {
 	Load(ctx context.Context, ID string) (*app.WorkItem, error)
 	Save(ctx context.Context, wi app.WorkItem) (*app.WorkItem, error)
-	Reorder(ctx context.Context, before string, wi app.WorkItem) (*app.WorkItem, error)
+	Reorder(ctx context.Context, beforeID string, wi app.WorkItem) (*app.WorkItem, error)
 	Delete(ctx context.Context, ID string) error
 	Create(ctx context.Context, typeID string, fields map[string]interface{}, creator string) (*app.WorkItem, error)
 	List(ctx context.Context, criteria criteria.Expression, start *int, length *int) ([]*app.WorkItem, uint64, error)
@@ -116,7 +116,7 @@ func (r *GormWorkItemRepository) Delete(ctx context.Context, ID string) error {
 // The order of workitems are spaced by a factor of 1000.
 // The new order of workitem := (order of previousitem + order of nextitem)/2
 // Version must be the same as the one int the stored version
-func (r *GormWorkItemRepository) Reorder(ctx context.Context, before string, wi app.WorkItem) (*app.WorkItem, error) {
+func (r *GormWorkItemRepository) Reorder(ctx context.Context, beforeID string, wi app.WorkItem) (*app.WorkItem, error) {
 	var order float64
 	res := WorkItem{}
 	beforeItem := WorkItem{}
@@ -137,15 +137,15 @@ func (r *GormWorkItemRepository) Reorder(ctx context.Context, before string, wi 
 		return nil, errors.NewVersionConflictError("version conflict")
 	}
 
-	wiType, err := r.wir.LoadTypeFromDB(wi.Type)
+	wiType, err := r.wir.LoadTypeFromDB(ctx, wi.Type)
 	if err != nil {
 		return nil, errors.NewBadParameterError("Type", wi.Type)
 	}
 
-	if before != "" {
-		beforeId, err := strconv.ParseUint(before, 10, 64)
+	if beforeID != "" {
+		beforeId, err := strconv.ParseUint(beforeID, 10, 64)
 		if err != nil || beforeId == 0 {
-			return nil, errors.NewNotFoundError("work item", before)
+			return nil, errors.NewNotFoundError("work item", string(beforeId))
 		}
 		tx = r.db.First(&beforeItem, beforeId)
 		if tx.RecordNotFound() {
@@ -168,7 +168,7 @@ func (r *GormWorkItemRepository) Reorder(ctx context.Context, before string, wi 
 				return nil, errors.NewBadParameterError("data.attributes.order", res.Position)
 			}
 			if tx2.RecordNotFound() {
-				return nil, errors.NewNotFoundError("work item", before)
+				return nil, errors.NewNotFoundError("work item", string(beforeId))
 			}
 			if tx2.Error != nil {
 				return nil, errors.NewInternalError(err.Error())

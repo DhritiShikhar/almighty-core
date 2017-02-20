@@ -1,6 +1,8 @@
 package design
 
 import (
+	"strings"
+
 	d "github.com/goadesign/goa/design"
 	a "github.com/goadesign/goa/design/apidsl"
 )
@@ -81,8 +83,23 @@ var workItemSingle = JSONSingle(
 	workItem2,
 	workItemLinks)
 
+// Reorder creates a UserTypeDefinition for Reorder action
+func Reorder(name, description string, data *d.UserTypeDefinition, position *d.UserTypeDefinition) *d.MediaTypeDefinition {
+	return a.MediaType("application/vnd."+strings.ToLower(name)+"json", func() {
+		a.UseTrait("jsonapi-media-type")
+		a.TypeName(name + "Reorder")
+		a.Description(description)
+		a.Attribute("data", a.ArrayOf(data))
+		a.Attribute("position", position)
+		a.View("default", func() {
+			a.Attribute("data")
+			a.Required("data")
+		})
+	})
+}
+
 // workItemReorder is the media type for reorder of work items
-var workItemReorder = JSONReorder(
+var workItemReorder = Reorder(
 	"WorkItem2", "Holds values for work item reorder",
 	workItem2,
 	position)
