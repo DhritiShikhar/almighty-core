@@ -28,6 +28,27 @@ var categoryAttributes = a.Type("categoryAttributes", func() {
 })
 
 var categoryRelationships = a.Type("CategoryRelations", func() {
-	a.Attribute("space", relationGeneric, "This defines the owning space")
 	a.Attribute("workitemtypes", relationGeneric, "This defines the workitemtypes associated with the category")
+})
+
+var categoryList = JSONList(
+	"category", "Holds the list of categories",
+	category,
+	pagingLinks,
+	meta)
+
+var _ = a.Resource("space_categories", func() {
+	a.Parent("space")
+
+	a.Action("list", func() {
+		a.Routing(
+			a.GET(""),
+		)
+		a.Description("List categories")
+		a.Response(d.OK, func() {
+			a.Media(categoryList)
+		})
+		a.Response(d.BadRequest, JSONAPIErrors)
+		a.Response(d.InternalServerError, JSONAPIErrors)
+	})
 })
