@@ -5,6 +5,7 @@ import (
 	"github.com/almighty/almighty-core/application"
 	"github.com/almighty/almighty-core/area"
 	"github.com/almighty/almighty-core/auth"
+	"github.com/almighty/almighty-core/category"
 	"github.com/almighty/almighty-core/codebase"
 	"github.com/almighty/almighty-core/comment"
 	"github.com/almighty/almighty-core/iteration"
@@ -69,6 +70,10 @@ func (db *MockDB) Iterations() iteration.Repository {
 }
 
 func (db *MockDB) Areas() area.Repository {
+	return nil
+}
+
+func (db *MockDB) Categories() category.Repository {
 	return nil
 }
 

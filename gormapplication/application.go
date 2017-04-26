@@ -8,6 +8,7 @@ import (
 	"github.com/almighty/almighty-core/application"
 	"github.com/almighty/almighty-core/area"
 	"github.com/almighty/almighty-core/auth"
+	"github.com/almighty/almighty-core/category"
 	"github.com/almighty/almighty-core/codebase"
 	"github.com/almighty/almighty-core/comment"
 	"github.com/almighty/almighty-core/iteration"
@@ -131,6 +132,11 @@ func (g *GormBase) Iterations() iteration.Repository {
 // Areas returns a area repository
 func (g *GormBase) Areas() area.Repository {
 	return area.NewAreaRepository(g.db)
+}
+
+// Categories returns a category repository
+func (g *GormBase) Categories() category.Repository {
+	return category.NewRepository(g.db)
 }
 
 // OauthStates returns an oauth state reference repository

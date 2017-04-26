@@ -11,6 +11,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/almighty/almighty-core/app"
 	"github.com/almighty/almighty-core/application"
+	"github.com/almighty/almighty-core/category"
 	"github.com/almighty/almighty-core/codebase"
 	"github.com/almighty/almighty-core/criteria"
 	"github.com/almighty/almighty-core/errors"
@@ -108,6 +109,25 @@ func (c *WorkitemController) List(ctx *app.ListWorkitemContext) error {
 	if ctx.FilterWorkitemstate != nil {
 		exp = criteria.And(exp, criteria.Equals(criteria.Field(workitem.SystemState), criteria.Literal(string(*ctx.FilterWorkitemstate))))
 		additionalQuery = append(additionalQuery, "filter[workitemstate]="+*ctx.FilterWorkitemstate)
+	}
+	if ctx.FilterCategory != nil {
+		var relationships []*category.WorkItemTypeCategoryRelationship
+		application.Transactional(c.db, func(tx application.Application) error {
+			// Load all workitemtypes related to the specific category
+			relationships, err = tx.Categories().LoadAllRelationshipsOfCategory(ctx, *ctx.FilterCategory)
+			if err != nil {
+				return jsonapi.JSONErrorResponse(ctx, errs.Wrap(err, fmt.Sprintf("failed to list work items in category %v", *ctx.FilterCategory)))
+			}
+			return nil
+		})
+		// for each workitemtype associated with the category, build the query expression
+		exp = criteria.And(exp, criteria.Equals(criteria.Field("Type"), criteria.Literal(relationships[0].WorkitemtypeID)))
+		if len(relationships) > 1 {
+			for i := 1; i < len(relationships); i++ {
+				exp = criteria.Or(exp, criteria.Equals(criteria.Field("Type"), criteria.Literal(relationships[i].WorkitemtypeID)))
+			}
+		}
+		additionalQuery = append(additionalQuery, "filter[category]="+ctx.FilterCategory.String())
 	}
 
 	offset, limit := computePagingLimts(ctx.PageOffset, ctx.PageLimit)

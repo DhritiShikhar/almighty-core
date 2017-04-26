@@ -412,6 +412,24 @@ func ConvertSpaceFromModel(ctx context.Context, db application.DB, request *goa.
 	relatedCollaboratorList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/collaborators", spaceIDStr))
 	relatedFilterList := rest.AbsoluteURL(request, "/api/filters")
 
+	// fetch all categories links
+	categoriesData := []*app.GenericData{}
+	application.Transactional(db, func(appl application.Application) error {
+		categories, err := appl.Categories().List(ctx)
+		if err != nil {
+			return errs.Wrap(err, "unable to fetch categories")
+		}
+		for _, cat := range categories {
+			relatedCategoryList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/workitems?filter[category]=%s", spaceIDStr, cat.ID))
+			catList := app.GenericData{
+				Links: &app.GenericLinks{
+					Related: &relatedCategoryList,
+				},
+			}
+			categoriesData = append(categoriesData, &catList)
+		}
+		return nil
+	})
 	count, err := countBacklogItems(ctx, db, sp.ID)
 	if err != nil {
 		return nil, errs.Wrap(err, "unable to fetch backlog items")
@@ -435,6 +453,9 @@ func ConvertSpaceFromModel(ctx context.Context, db application.DB, request *goa.
 			Workitemtypes:     &relatedWorkItemTypeList,
 			Workitemlinktypes: &relatedWorkItemLinkTypeList,
 			Filters:           &relatedFilterList,
+			Categories: &app.RelationGenericList{
+				Data: categoriesData,
+			},
 		},
 		Relationships: &app.SpaceRelationships{
 			OwnedBy: &app.SpaceOwnedBy{

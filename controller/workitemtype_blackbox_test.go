@@ -9,6 +9,7 @@ import (
 
 	"github.com/almighty/almighty-core/app"
 	"github.com/almighty/almighty-core/app/test"
+	"github.com/almighty/almighty-core/category"
 	. "github.com/almighty/almighty-core/controller"
 	"github.com/almighty/almighty-core/gormapplication"
 	"github.com/almighty/almighty-core/gormsupport/cleaner"
@@ -132,6 +133,14 @@ func (s *workItemTypeSuite) createWorkItemTypeAnimal() (http.ResponseWriter, *ap
 		Request: &http.Request{Host: "api.service.domain.org"},
 	}
 	spaceSelfURL := rest.AbsoluteURL(reqLong, app.SpaceHref(space.SystemSpace.String()))
+
+	categoriesData := []*app.GenericData{}
+	catId := category.PlannerRequirementsID.String()
+	catList := app.GenericData{
+		ID: &catId,
+	}
+	categoriesData = append(categoriesData, &catList)
+
 	payload := app.CreateWorkitemtypePayload{
 		Data: &app.WorkItemTypeData{
 			Type: "workitemtypes",
@@ -147,6 +156,9 @@ func (s *workItemTypeSuite) createWorkItemTypeAnimal() (http.ResponseWriter, *ap
 			},
 			Relationships: &app.WorkItemTypeRelationships{
 				Space: app.NewSpaceRelation(space.SystemSpace, spaceSelfURL),
+				Categories: &app.RelationGenericList{
+					Data: categoriesData,
+				},
 			},
 		},
 	}
@@ -179,6 +191,14 @@ func (s *workItemTypeSuite) createWorkItemTypePerson() (http.ResponseWriter, *ap
 		Request: &http.Request{Host: "api.service.domain.org"},
 	}
 	spaceSelfURL := rest.AbsoluteURL(reqLong, app.SpaceHref(space.SystemSpace.String()))
+
+	categoriesData := []*app.GenericData{}
+	catId := category.PlannerRequirementsID.String()
+	catList := app.GenericData{
+		ID: &catId,
+	}
+	categoriesData = append(categoriesData, &catList)
+
 	payload := app.CreateWorkitemtypePayload{
 		Data: &app.WorkItemTypeData{
 			ID:   &id,
@@ -193,6 +213,9 @@ func (s *workItemTypeSuite) createWorkItemTypePerson() (http.ResponseWriter, *ap
 			},
 			Relationships: &app.WorkItemTypeRelationships{
 				Space: app.NewSpaceRelation(space.SystemSpace, spaceSelfURL),
+				Categories: &app.RelationGenericList{
+					Data: categoriesData,
+				},
 			},
 		},
 	}
@@ -220,6 +243,14 @@ func CreateWorkItemType(id uuid.UUID, spaceID uuid.UUID) app.CreateWorkitemtypeP
 		Request: &http.Request{Host: "api.service.domain.org"},
 	}
 	spaceSelfURL := rest.AbsoluteURL(reqLong, app.SpaceHref(spaceID.String()))
+
+	categoriesData := []*app.GenericData{}
+	catId := category.PlannerRequirementsID.String()
+	catList := app.GenericData{
+		ID: &catId,
+	}
+	categoriesData = append(categoriesData, &catList)
+
 	payload := app.CreateWorkitemtypePayload{
 		Data: &app.WorkItemTypeData{
 			ID:   &id,
@@ -234,6 +265,9 @@ func CreateWorkItemType(id uuid.UUID, spaceID uuid.UUID) app.CreateWorkitemtypeP
 			},
 			Relationships: &app.WorkItemTypeRelationships{
 				Space: app.NewSpaceRelation(spaceID, spaceSelfURL),
+				Categories: &app.RelationGenericList{
+					Data: categoriesData,
+				},
 			},
 		},
 	}

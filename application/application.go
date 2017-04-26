@@ -4,6 +4,7 @@ import (
 	"github.com/almighty/almighty-core/account"
 	"github.com/almighty/almighty-core/area"
 	"github.com/almighty/almighty-core/auth"
+	"github.com/almighty/almighty-core/category"
 	"github.com/almighty/almighty-core/codebase"
 
 	"github.com/almighty/almighty-core/comment"
@@ -30,6 +31,7 @@ type Application interface {
 	Iterations() iteration.Repository
 	Users() account.UserRepository
 	Areas() area.Repository
+	Categories() category.Repository
 	OauthStates() auth.OauthStateReferenceRepository
 	Codebases() codebase.Repository
 }
