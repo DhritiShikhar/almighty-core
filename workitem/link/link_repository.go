@@ -349,11 +349,16 @@ func (r *GormWorkItemLinkRepository) ListWorkItemChildren(ctx context.Context, p
 	defer goa.MeasureSince([]string{"goa", "db", "workitem", "children", "query"}, time.Now())
 
 	where := fmt.Sprintf(`
-	id in (
-		SELECT target_id FROM %s
-		WHERE source_id = ? AND link_type_id IN (
-			SELECT id FROM %s WHERE forward_name = 'parent of'
-		)
+	id IN
+		(
+       			SELECT target_id
+       			FROM   %[1]s
+       			WHERE  source_id = $1
+       			AND    link_type_id IN
+              			(
+                     			SELECT id
+                     			FROM   %[2]s
+                     			WHERE  forward_name = 'parent of')
 	)`, WorkItemLink{}.TableName(), WorkItemLinkType{}.TableName())
 	db := r.db.Model(&workitem.WorkItemStorage{}).Where(where, parent)
 	rows, err := db.Rows()
@@ -390,15 +395,21 @@ func (r *GormWorkItemLinkRepository) ListWorkItemChildren(ctx context.Context, p
 func (r *GormWorkItemLinkRepository) WorkItemHasChildren(ctx context.Context, parent string) (bool, error) {
 	defer goa.MeasureSince([]string{"goa", "db", "workitem", "has", "children"}, time.Now())
 	query := fmt.Sprintf(`
-		SELECT EXISTS (
-			SELECT 1 FROM %[1]s WHERE id in (
-				SELECT target_id FROM %[2]s
-				WHERE source_id = $1 AND link_type_id IN (
-					SELECT id FROM %[3]s WHERE forward_name = 'parent of'
-				)
-			)
-		)`,
-		workitem.WorkItemStorage{}.TableName(),
+		 SELECT EXISTS
+       			(
+              			SELECT 1
+              			FROM   %[1]s
+              			WHERE  id IN
+                     			(
+                            			SELECT target_id
+                            			FROM   %[2]s
+                            			WHERE  source_id = $1
+                            			AND    link_type_id IN
+                                   			(
+                                          			SELECT id
+                                          			FROM   %[3]s
+                                          			WHERE  forward_name = 'parent of')) 
+		)`, workitem.WorkItemStorage{}.TableName(),
 		WorkItemLink{}.TableName(),
 		WorkItemLinkType{}.TableName())
 	var hasChildren bool

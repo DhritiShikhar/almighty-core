@@ -156,9 +156,11 @@ func (r *GormWorkItemRepository) loadWorkItemStorage(ctx context.Context, spaceI
 func (r *GormWorkItemRepository) LoadTopWorkitem(ctx context.Context) (*WorkItem, error) {
 	res := WorkItemStorage{}
 	db := r.db.Model(WorkItemStorage{})
-	query := fmt.Sprintf("execution_order = (SELECT max(execution_order) FROM %[1]s)",
-		WorkItemStorage{}.TableName(),
-	)
+	query := fmt.Sprintf(`
+			execution_order=
+				(SELECT max(execution_order)
+       					FROM   %[1]s
+			)`, WorkItemStorage{}.TableName())
 	db = db.Where(query).First(&res)
 	wiType, err := r.witr.LoadTypeFromDB(ctx, res.Type)
 	if err != nil {
@@ -172,9 +174,11 @@ func (r *GormWorkItemRepository) LoadTopWorkitem(ctx context.Context) (*WorkItem
 func (r *GormWorkItemRepository) LoadBottomWorkitem(ctx context.Context) (*WorkItem, error) {
 	res := WorkItemStorage{}
 	db := r.db.Model(WorkItemStorage{})
-	query := fmt.Sprintf("execution_order = (SELECT min(execution_order) FROM %[1]s)",
-		WorkItemStorage{}.TableName(),
-	)
+	query := fmt.Sprintf(`
+			execution_order=
+				(SELECT min(execution_order)
+       					FROM   %[1]s
+			)`, WorkItemStorage{}.TableName())
 	db = db.Where(query).First(&res)
 	wiType, err := r.witr.LoadTypeFromDB(ctx, res.Type)
 	if err != nil {
@@ -187,9 +191,11 @@ func (r *GormWorkItemRepository) LoadBottomWorkitem(ctx context.Context) (*WorkI
 func (r *GormWorkItemRepository) LoadHighestOrder() (float64, error) {
 	res := WorkItemStorage{}
 	db := r.db.Model(WorkItemStorage{})
-	query := fmt.Sprintf("execution_order = (SELECT max(execution_order) FROM %[1]s)",
-		WorkItemStorage{}.TableName(),
-	)
+	query := fmt.Sprintf(`
+			execution_order=
+				(SELECT max(execution_order)
+       					FROM   %[1]s
+			)`, WorkItemStorage{}.TableName())
 	db = db.Where(query).First(&res)
 	order, err := strconv.ParseFloat(fmt.Sprintf("%v", res.ExecutionOrder), 64)
 	if err != nil {
@@ -210,7 +216,7 @@ func (r *GormWorkItemRepository) Delete(ctx context.Context, spaceID uuid.UUID, 
 	workItem.ID = id
 	workItem.SpaceID = spaceID
 	// retrieve the current version of the work item to delete
-	r.db.Select("id, version, type").Where("id = ? AND space_id = ?", workItem.ID, spaceID).Find(&workItem)
+	r.db.Select("id, version, type").Where("id = $1 AND space_id = $2", workItem.ID, spaceID).Find(&workItem)
 	// delete the work item
 	tx := r.db.Delete(workItem)
 	if err = tx.Error; err != nil {
@@ -247,10 +253,26 @@ func (r *GormWorkItemRepository) FindSecondItem(order *float64, secondItemDirect
 	switch secondItemDirection {
 	case DirectionAbove:
 		// Finds the item above which reorder item has to be placed
-		tx = r.db.Where(fmt.Sprintf("execution_order = (SELECT max(execution_order) FROM %s WHERE (execution_order < ?))", WorkItemStorage{}.TableName()), order).First(&Item)
+		query := fmt.Sprintf(`
+			execution_order =
+			(
+				SELECT max(execution_order)
+				FROM %[1]s
+				WHERE (
+					execution_order < $1)
+			)`, WorkItemStorage{}.TableName())
+		tx = r.db.Where(query, order).First(&Item)
 	case DirectionBelow:
 		// Finds the item below which reorder item has to be placed
-		tx = r.db.Where(fmt.Sprintf("execution_order = (SELECT min(execution_order) FROM %s WHERE (execution_order > ?))", WorkItemStorage{}.TableName()), order).First(&Item)
+		query := fmt.Sprintf(`
+			execution_order =
+			(
+				SELECT min(execution_order)
+				FROM %[1]s
+				WHERE (
+					execution_order > $1)
+			)`, WorkItemStorage{}.TableName())
+		tx = r.db.Where(query, order).First(&Item)
 	default:
 		return nil, nil, nil
 	}
@@ -711,9 +733,9 @@ func (r *GormWorkItemRepository) GetCountsForIteration(ctx context.Context, iter
 	query := fmt.Sprintf(`SELECT count(*) as Total,
 						count( case fields->>'system.state' when 'closed' then '1' else null end ) as Closed
 						FROM "work_items"
-						where fields@> concat('{"system.iteration": "%s"}')::jsonb
-						and work_items.deleted_at is null`, iterationID)
-	db := r.db.Raw(query)
+						where fields@> concat('{"system.iteration": "$1"}')::jsonb
+						and work_items.deleted_at is null`)
+	db := r.db.Raw(query, iterationID)
 	db.Scan(&res)
 	if db.Error != nil {
 		return nil, errors.NewInternalError(db.Error.Error())
