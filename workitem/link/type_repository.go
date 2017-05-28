@@ -173,11 +173,16 @@ func (r *GormWorkItemLinkTypeRepository) ListSourceLinkTypes(ctx context.Context
 	query := fmt.Sprintf(`
 			-- Get link types we can use with a specific WIT if the WIT is at the
 			-- source of the link.
-			(SELECT path FROM %[2]s WHERE id = %[1]s.source_type_id LIMIT 1)
+			(SELECT path
+				FROM   %[1]s
+				WHERE  id = %[2]s.source_type_id LIMIT 1) 
 			@>
-			(SELECT path FROM %[2]s WHERE id = ? LIMIT 1)`,
+			(SELECT path 
+				FROM %[1]s 
+				WHERE id = $1 LIMIT 1)`,
+		workitem.WorkItemType{}.TableName(),		
 		WorkItemLinkType{}.TableName(),
-		workitem.WorkItemType{}.TableName(),
+
 	)
 	db = db.Where(query, witID)
 	var rows []WorkItemLinkType
@@ -196,11 +201,15 @@ func (r *GormWorkItemLinkTypeRepository) ListTargetLinkTypes(ctx context.Context
 	query := fmt.Sprintf(`
 			-- Get link types we can use with a specific WIT if the WIT is at the
 			-- target of the link.
-			(SELECT path FROM %[2]s WHERE id = %[1]s.target_type_id LIMIT 1)
+			(SELECT path 
+				FROM 	%[1]s 
+				WHERE 	id = %[2]s.target_type_id LIMIT 1)
 			@>
-			(SELECT path FROM %[2]s WHERE id = ? LIMIT 1)`,
-		WorkItemLinkType{}.TableName(),
+			(SELECT path 
+				FROM %[1]s 
+				WHERE id = $1 LIMIT 1)`,
 		workitem.WorkItemType{}.TableName(),
+		WorkItemLinkType{}.TableName(),
 	)
 	db = db.Where(query, witID)
 	var rows []WorkItemLinkType
