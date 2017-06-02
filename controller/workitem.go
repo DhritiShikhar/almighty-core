@@ -690,18 +690,23 @@ func workItemIncludeHasChildren(appl application.Application, ctx context.Contex
 // ListChildren runs the list action.
 func (c *WorkitemController) ListChildren(ctx *app.ListChildrenWorkitemContext) error {
 	// WorkItemChildrenController_List: start_implement
-
+	var additionalQuery []string
 	// Put your logic here
+	offset, limit := computePagingLimits(ctx.PageOffset, ctx.PageLimit)
 	return application.Transactional(c.db, func(appl application.Application) error {
-		result, err := appl.WorkItemLinks().ListWorkItemChildren(ctx, ctx.WiID)
+		result, tc, err := appl.WorkItemLinks().ListWorkItemChildren(ctx, ctx.WiID, &offset, &limit)
+		count := int(tc)
 		if err != nil {
-			return jsonapi.JSONErrorResponse(ctx, goa.ErrNotFound(err.Error()))
+			return jsonapi.JSONErrorResponse(ctx, errs.Wrap(err, "Error listing workitem children"))
 		}
 		return ctx.ConditionalEntities(result, c.config.GetCacheControlWorkItems, func() error {
 			hasChildren := workItemIncludeHasChildren(appl, ctx)
 			response := app.WorkItemList{
-				Data: ConvertWorkItems(ctx.RequestData, result, hasChildren),
+				Links: &app.PagingLinks{},
+				Meta:  &app.WorkItemListResponseMeta{TotalCount: count},
+				Data:  ConvertWorkItems(ctx.RequestData, result, hasChildren),
 			}
+			setPagingLinks(response.Links, buildAbsoluteURL(ctx.RequestData), len(result), offset, limit, count, additionalQuery...)
 			return ctx.OK(&response)
 		})
 	})

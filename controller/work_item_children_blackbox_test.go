@@ -277,41 +277,48 @@ func (s *workItemChildSuite) TestChildren() {
 		_, workItem := test.ShowWorkitemOK(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, *s.bug3.Data.ID, nil, nil)
 		checkChildrenRelationship(t, workItem.Data, &hasNoChildren)
 	})
+
+	offset := "0"
+	limit := 1
+
 	s.T().Run("list ok", func(t *testing.T) {
 		// when
-		res, workItemList := test.ListChildrenWorkitemOK(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, nil, nil)
+		res, workItemList := test.ListChildrenWorkitemOK(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &limit, &offset, nil, nil)
 		// then
 		assertWorkItemList(t, workItemList)
 		assertResponseHeaders(t, res)
+		require.Len(t, workItemList.Data, 1)
 	})
 	s.T().Run("using expired if modified since header", func(t *testing.T) {
 		// when
 		ifModifiedSince := app.ToHTTPTime(s.bug1.Data.Attributes[workitem.SystemUpdatedAt].(time.Time).Add(-1 * time.Hour))
-		res, workItemList := test.ListChildrenWorkitemOK(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &ifModifiedSince, nil)
+		res, workItemList := test.ListChildrenWorkitemOK(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &limit, &offset, &ifModifiedSince, nil)
 		// then
 		assertWorkItemList(t, workItemList)
 		assertResponseHeaders(t, res)
+		require.Len(t, workItemList.Data, 1)
 	})
 	s.T().Run("using expired if none match header", func(t *testing.T) {
 		// when
 		ifNoneMatch := "foo"
-		res, workItemList := test.ListChildrenWorkitemOK(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, nil, &ifNoneMatch)
+		res, workItemList := test.ListChildrenWorkitemOK(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &limit, &offset, nil, &ifNoneMatch)
 		// then
 		assertWorkItemList(t, workItemList)
 		assertResponseHeaders(t, res)
+		require.Len(t, workItemList.Data, 1)
 	})
 	s.T().Run("not modified using if modified since header", func(t *testing.T) {
 		// when
 		ifModifiedSince := app.ToHTTPTime(s.bug3.Data.Attributes[workitem.SystemUpdatedAt].(time.Time))
-		res := test.ListChildrenWorkitemNotModified(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &ifModifiedSince, nil)
+		res := test.ListChildrenWorkitemNotModified(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &limit, &offset, &ifModifiedSince, nil)
 		// then
 		assertResponseHeaders(t, res)
 	})
 	s.T().Run("not modified using if none match header", func(t *testing.T) {
-		_, workItemList := test.ListChildrenWorkitemOK(s.T(), s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, nil, nil)
+		_, workItemList := test.ListChildrenWorkitemOK(s.T(), s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &limit, &offset, nil, nil)
 		// when
 		ifNoneMatch := generateWorkitemsTag(workItemList)
-		res := test.ListChildrenWorkitemNotModified(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, nil, &ifNoneMatch)
+		res := test.ListChildrenWorkitemNotModified(t, s.svc.Context, s.svc, s.workItemCtrl, s.userSpaceID, workItemID1, &limit, &offset, nil, &ifNoneMatch)
 		// then
 		assertResponseHeaders(t, res)
 	})
