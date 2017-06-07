@@ -388,7 +388,6 @@ func (r *GormWorkItemLinkRepository) ListWorkItemChildren(ctx context.Context, p
 	for index := range columnValues {
 		columnValues[index] = &ignore
 	}
-	columnValues[0] = &count
 	first := true
 
 	for rows.Next() {
