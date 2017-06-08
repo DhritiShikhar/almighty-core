@@ -153,6 +153,8 @@ var _ = a.Resource("workitem", func() {
 		a.Description("List children associated with the given work item")
 		a.Params(func() {
 			a.Param("wiId", d.String, "wiId")
+			a.Param("page[offset]", d.String, "Paging start position")
+			a.Param("page[limit]", d.Integer, "Paging size")
 		})
 		a.UseTrait("conditional")
 		a.Response(d.OK, workItemList)
