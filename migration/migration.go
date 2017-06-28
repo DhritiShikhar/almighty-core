@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sync"
@@ -660,10 +661,16 @@ func createOrUpdateWorkItemLinkType(ctx context.Context, linkCatRepo *link.GormW
 }
 
 func createOrUpdateCategories(ctx context.Context, db *gorm.DB, categoryRepo category.Repository, categoryID *uuid.UUID, categoryName string) error {
-	_, err := categoryRepo.LoadCategory(ctx, *categoryID)
-	cause := errs.Cause(err)
-	switch cause.(type) {
-	case errors.NotFoundError:
+	// Check if category exists
+	categoryExists, err := categoryRepo.Exists(ctx, categoryID)
+	if err != nil {
+		log.Error(ctx, map[string]interface{}{
+			"category_id": categoryID,
+		}, "category not found")
+		return nil, errs.Wrap(err, fmt.Sprintf("failed to load category with id %s", categoryID))
+	}
+	if categoryExists == false {
+		// if category doesnot exist then create it
 		category := category.Category{
 			ID:   *categoryID,
 			Name: categoryName,
@@ -676,7 +683,8 @@ func createOrUpdateCategories(ctx context.Context, db *gorm.DB, categoryRepo cat
 			}, "unable to create category")
 			return errs.WithStack(err)
 		}
-	case nil:
+	} else {
+		// if category exists then update it
 		log.Info(ctx, map[string]interface{}{
 			"category_name": categoryName,
 		}, "Category %s exists, will update/overwrite all fields", categoryName)

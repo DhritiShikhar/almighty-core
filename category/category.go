@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/almighty/almighty-core/application/repository"
 	"github.com/almighty/almighty-core/convert"
 	"github.com/almighty/almighty-core/errors"
 	"github.com/almighty/almighty-core/gormsupport"
 	"github.com/almighty/almighty-core/log"
+	"github.com/goadesign/goa"
 	"github.com/jinzhu/gorm"
 	errs "github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -41,7 +44,7 @@ type Category struct {
 
 // TableName overrides the table name settings in Gorm to force a specific table name
 // in the database.
-func (category *Category) TableName() string {
+func (category Category) TableName() string {
 	return "categories"
 }
 
@@ -83,8 +86,8 @@ func (category Category) Equal(u convert.Equaler) bool {
 
 // Repository encapsulates storage and retrieval of categories
 type Repository interface {
+	repository.Exister
 	Create(ctx context.Context, category *Category) (*Category, error)
-	LoadCategory(ctx context.Context, id uuid.UUID) (*Category, error)
 	List(ctx context.Context) ([]*Category, error)
 	AssociateWIT(ctx context.Context, relationship *WorkItemTypeCategoryRelationship) error
 	LoadAllRelationshipsOfCategory(ctx context.Context, categoryID uuid.UUID) ([]*WorkItemTypeCategoryRelationship, error)
@@ -156,9 +159,18 @@ func (m *GormRepository) Create(ctx context.Context, category *Category) (*Categ
 
 // LoadAllRelationshipsOfCategory loads all the relationships of a category. This is required for workitemtype filtering.
 func (m *GormRepository) LoadAllRelationshipsOfCategory(ctx context.Context, categoryID uuid.UUID) ([]*WorkItemTypeCategoryRelationship, error) {
-	// Check if category is present
-	_, err := m.LoadCategory(ctx, categoryID)
+	// Check if category exists
+	categoryExists, err := m.Exists(ctx, categoryID)
 	if err != nil {
+		log.Error(ctx, map[string]interface{}{
+			"category_id": categoryID,
+		}, "category not found")
+		return nil, errs.Wrap(err, fmt.Sprintf("failed to load category with id %s", categoryID))
+	}
+	if categoryExists == false {
+		log.Error(ctx, map[string]interface{}{
+			"category_id": categoryID,
+		}, "category not found")
 		return nil, errs.Wrap(err, fmt.Sprintf("failed to load category with id %s", categoryID))
 	}
 
@@ -180,25 +192,10 @@ func (m *GormRepository) LoadAllRelationshipsOfCategory(ctx context.Context, cat
 	return relationship, nil
 }
 
-// LoadCategory returns category for the given id
-// This is needed to check if a category is present in db or not.
-func (m *GormRepository) LoadCategory(ctx context.Context, id uuid.UUID) (*Category, error) {
-	res := Category{}
-	db := m.db.Model(&res).Where("id=?", id).First(&res)
-	if db.RecordNotFound() {
-		log.Error(ctx, map[string]interface{}{
-			"category_id": id,
-		}, "category not found")
-		return nil, errors.NewNotFoundError("category", id.String())
-	}
-	if err := db.Error; err != nil {
-		log.Error(ctx, map[string]interface{}{
-			"category_id": id,
-			"err":         err,
-		}, "unable to load category", err.Error())
-		return nil, errors.NewInternalError(ctx, errs.Wrap(db.Error, "unable to load category"))
-	}
-	return &res, nil
+// Exists returns true|false whether an category exists with a specific identifier
+func (m *GormRepository) Exists(ctx context.Context, id string) (bool, error) {
+	defer goa.MeasureSince([]string{"goa", "db", "user", "exists"}, time.Now())
+	return repository.Exists(ctx, m.db, Category{}.TableName(), id)
 }
 
 // Save updates a category in the database based on the ID by the given category object

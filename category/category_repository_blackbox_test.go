@@ -56,10 +56,9 @@ func (test *categoryRepoBlackBoxTest) TestCreateLoadValidCategory() {
 		require.NotNil(test.T(), result1.ID)
 		require.NotNil(test.T(), result1.Name)
 
-		result2, err := test.repo.LoadCategory(test.ctx, result1.ID) // Load
+		categoryExists, err := test.repo.Exists(test.ctx, result1.ID) // Load
 		require.Nil(test.T(), err)
-		require.NotNil(test.T(), result2)
-		require.NotNil(test.T(), result2.ID)
+		require.True(test.T(), categoryExists)
 
 		assert.Equal(test.T(), result1.ID, result2.ID)
 		assert.Equal(test.T(), result1.Name, result2.Name)
