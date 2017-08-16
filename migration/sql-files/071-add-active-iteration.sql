@@ -1,1 +1,1 @@
-ALTER TABLE iterations ADD COLUMN active text;
+ALTER TABLE iterations ADD COLUMN active bool DEFAULT false;

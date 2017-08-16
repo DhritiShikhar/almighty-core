@@ -26,8 +26,8 @@ const (
 	IterationStateClose    = "close"
 	PathSepInService       = "/"
 	PathSepInDatabase      = "."
-	IterationActive        = "true"
-	IterationNotActive     = "false"
+	IterationActive        = true
+	IterationNotActive     = false
 )
 
 // Iteration describes a single iteration
@@ -41,7 +41,7 @@ type Iteration struct {
 	Name        string
 	Description *string
 	State       string // this tells if iteration is currently running or not
-	Active      string
+	Active      bool
 }
 
 // GetETagData returns the field values to use to generate the ETag
@@ -250,13 +250,6 @@ func (m *GormIterationRepository) CanStart(ctx context.Context, i *Iteration) (b
 
 func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration) (bool, error) {
 	itr := Iteration{}
-	rootItr, err := m.Root(ctx, i.SpaceID)
-	if err != nil {
-		return false, err
-	}
-	if i.ID == rootItr.ID {
-		return false, errors.NewBadParameterError("iteration", "Root iteration can not be started.")
-	}
 	tx := m.db.Where("id=?", i.ID).First(&itr)
 	if tx.RecordNotFound() {
 		log.Error(ctx, map[string]interface{}{
@@ -266,10 +259,10 @@ func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration)
 		return false, errors.NewNotFoundError("iteration", i.ID.String())
 	}
 	timeNow := time.Now()
-	if timeNow.Equal(itr.StartAt) {
+	if timeNow.After(*itr.StartAt) || timeNow.Before(*itr.EndAt) {
 		return true, nil
 	}
-	return true, nil
+	return false, nil
 }
 
 // LoadChildren executes - select * from iterations where path <@ 'parent_path.parent_id';

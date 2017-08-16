@@ -177,9 +177,27 @@ func (c *IterationController) Update(ctx *app.UpdateIterationContext) error {
 		}
 		if ctx.Payload.Data.Attributes.StartAt != nil {
 			itr.StartAt = ctx.Payload.Data.Attributes.StartAt
+			res, err := appl.Iterations().InTimeframe(ctx, itr)
+			if err != nil {
+				return jsonapi.JSONErrorResponse(ctx, err)
+			}
+			if res == iteration.IterationActive {
+				itr.Active = iteration.IterationActive
+			} else {
+				itr.Active = iteration.IterationNotActive
+			}
 		}
 		if ctx.Payload.Data.Attributes.EndAt != nil {
 			itr.EndAt = ctx.Payload.Data.Attributes.EndAt
+			res, err := appl.Iterations().InTimeframe(ctx, itr)
+			if err != nil {
+				return jsonapi.JSONErrorResponse(ctx, err)
+			}
+			if res == iteration.IterationActive {
+				itr.Active = iteration.IterationActive
+			} else {
+				itr.Active = iteration.IterationNotActive
+			}
 		}
 		if ctx.Payload.Data.Attributes.Description != nil {
 			itr.Description = ctx.Payload.Data.Attributes.Description
@@ -195,11 +213,19 @@ func (c *IterationController) Update(ctx *app.UpdateIterationContext) error {
 		}
 		if ctx.Payload.Data.Attributes.Active != nil {
 			if *ctx.Payload.Data.Attributes.Active == iteration.IterationActive {
+				// user sets "active"
 				itr.Active = *ctx.Payload.Data.Attributes.Active
-			}
-			res, err := appl.Iterations().InTimeframe(ctx, itr)
-			if res == false && err != nil {
-				return jsonapi.JSONErrorResponse(ctx, err)
+			} else {
+				// user sets "deactive"
+				res, err := appl.Iterations().InTimeframe(ctx, itr)
+				if err != nil {
+					return jsonapi.JSONErrorResponse(ctx, err)
+				}
+				if res == iteration.IterationActive {
+					itr.Active = iteration.IterationActive
+				} else {
+					itr.Active = iteration.IterationNotActive
+				}
 			}
 		}
 		itr, err = appl.Iterations().Save(ctx.Context, *itr)
