@@ -259,7 +259,7 @@ func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration)
 		return false, errors.NewNotFoundError("iteration", i.ID.String())
 	}
 	timeNow := time.Now()
-	if timeNow.After(*itr.StartAt) || timeNow.Before(*itr.EndAt) {
+	if timeNow.After(*itr.StartAt) && timeNow.Before(*itr.EndAt) {
 		return true, nil
 	}
 	return false, nil
