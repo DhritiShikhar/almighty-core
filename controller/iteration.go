@@ -193,6 +193,15 @@ func (c *IterationController) Update(ctx *app.UpdateIterationContext) error {
 			}
 			itr.State = *ctx.Payload.Data.Attributes.State
 		}
+		if ctx.Payload.Data.Attributes.Active != nil {
+			if *ctx.Payload.Data.Attributes.Active == iteration.IterationActive {
+				itr.Active = *ctx.Payload.Data.Attributes.Active
+			}
+			res, err := appl.Iterations().InTimeframe(ctx, itr)
+			if res == false && err != nil {
+				return jsonapi.JSONErrorResponse(ctx, err)
+			}
+		}
 		itr, err = appl.Iterations().Save(ctx.Context, *itr)
 		if err != nil {
 			return jsonapi.JSONErrorResponse(ctx, err)
@@ -252,6 +261,7 @@ func ConvertIteration(request *goa.RequestData, itr iteration.Iteration, additio
 			Description: itr.Description,
 			State:       &itr.State,
 			ParentPath:  &pathToTopMostParent,
+			Active:      &itr.Active,
 		},
 		Relationships: &app.IterationRelations{
 			Space: &app.RelationGeneric{

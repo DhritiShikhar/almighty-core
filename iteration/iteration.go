@@ -26,6 +26,8 @@ const (
 	IterationStateClose    = "close"
 	PathSepInService       = "/"
 	PathSepInDatabase      = "."
+	IterationActive        = "true"
+	IterationNotActive     = "false"
 )
 
 // Iteration describes a single iteration
@@ -39,6 +41,7 @@ type Iteration struct {
 	Name        string
 	Description *string
 	State       string // this tells if iteration is currently running or not
+	Active      string
 }
 
 // GetETagData returns the field values to use to generate the ETag
@@ -67,6 +70,7 @@ type Repository interface {
 	Load(ctx context.Context, id uuid.UUID) (*Iteration, error)
 	Save(ctx context.Context, i Iteration) (*Iteration, error)
 	CanStart(ctx context.Context, i *Iteration) (bool, error)
+	InTimeframe(ctx context.Context, i *Iteration) (bool, error)
 	LoadMultiple(ctx context.Context, ids []uuid.UUID) ([]Iteration, error)
 	LoadChildren(ctx context.Context, parentIterationID uuid.UUID) ([]Iteration, error)
 }
@@ -102,6 +106,7 @@ func (m *GormIterationRepository) Create(ctx context.Context, u *Iteration) erro
 
 	u.ID = uuid.NewV4()
 	u.State = IterationStateNew
+	u.Active = IterationNotActive
 	err := m.db.Create(u).Error
 	// Composite key (name,space,path) must be unique
 	// ( name, spaceID ,path ) needs to be unique
@@ -239,6 +244,30 @@ func (m *GormIterationRepository) CanStart(ctx context.Context, i *Iteration) (b
 			"space_id":     i.SpaceID,
 		}, "one iteration from given space is already running!")
 		return false, errors.NewBadParameterError("state", "One iteration from given space is already running")
+	}
+	return true, nil
+}
+
+func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration) (bool, error) {
+	itr := Iteration{}
+	rootItr, err := m.Root(ctx, i.SpaceID)
+	if err != nil {
+		return false, err
+	}
+	if i.ID == rootItr.ID {
+		return false, errors.NewBadParameterError("iteration", "Root iteration can not be started.")
+	}
+	tx := m.db.Where("id=?", i.ID).First(&itr)
+	if tx.RecordNotFound() {
+		log.Error(ctx, map[string]interface{}{
+			"iteration_id": i.ID,
+		}, "iteration cannot be found")
+		// treating this as a not found error: the fact that we're using number internal is implementation detail
+		return false, errors.NewNotFoundError("iteration", i.ID.String())
+	}
+	timeNow := time.Now()
+	if timeNow.Equal(itr.StartAt) {
+		return true, nil
 	}
 	return true, nil
 }
