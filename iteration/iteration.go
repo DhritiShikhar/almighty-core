@@ -269,8 +269,10 @@ func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration)
 			}
 		}
 	case i.Active == false:
-		if time.Now().UTC().After(*itr.StartAt) && time.Now().UTC().Before(*itr.EndAt) {
-			return true, nil
+		if itr.StartAt != nil && itr.EndAt != nil {
+			if time.Now().UTC().After(*itr.StartAt) && time.Now().UTC().Before(*itr.EndAt) {
+				return true, nil
+			}
 		}
 	}
 	return false, nil
