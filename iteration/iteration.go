@@ -255,12 +255,23 @@ func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration)
 		log.Error(ctx, map[string]interface{}{
 			"iteration_id": i.ID,
 		}, "iteration cannot be found")
-		// treating this as a not found error: the fact that we're using number internal is implementation detail
 		return false, errors.NewNotFoundError("iteration", i.ID.String())
 	}
-	timeNow := time.Now()
-	if timeNow.After(*itr.StartAt) && timeNow.Before(*itr.EndAt) {
-		return true, nil
+	switch {
+	case i.StartAt != nil:
+		if time.Now().UTC().After(*i.StartAt) {
+			return true, nil
+		}
+	case i.EndAt != nil:
+		if itr.StartAt != nil {
+			if time.Now().UTC().After(*itr.StartAt) && time.Now().UTC().Before(*i.EndAt) {
+				return true, nil
+			}
+		}
+	case i.Active == false:
+		if time.Now().UTC().After(*itr.StartAt) && time.Now().UTC().Before(*itr.EndAt) {
+			return true, nil
+		}
 	}
 	return false, nil
 }
