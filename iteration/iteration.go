@@ -267,6 +267,7 @@ func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration)
 			return true, nil
 		}
 	case i.EndAt != nil:
+		// EndAt simply cannot determine if iteration is active or not, so we check startAt also
 		if itr.StartAt != nil {
 			if time.Now().UTC().After(*itr.StartAt) && time.Now().UTC().Before(*i.EndAt) {
 				return true, nil

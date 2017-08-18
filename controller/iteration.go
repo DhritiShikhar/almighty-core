@@ -177,7 +177,7 @@ func (c *IterationController) Update(ctx *app.UpdateIterationContext) error {
 		}
 		if ctx.Payload.Data.Attributes.StartAt != nil {
 			itr.StartAt = ctx.Payload.Data.Attributes.StartAt
-			// check if iteration is in timeframe
+			// check if iteration is in timeframe to activate
 			res, err := appl.Iterations().InTimeframe(ctx, itr)
 			if err != nil {
 				return jsonapi.JSONErrorResponse(ctx, err)
@@ -190,7 +190,7 @@ func (c *IterationController) Update(ctx *app.UpdateIterationContext) error {
 		}
 		if ctx.Payload.Data.Attributes.EndAt != nil {
 			itr.EndAt = ctx.Payload.Data.Attributes.EndAt
-			// check if iteration is in timeframe
+			// check if iteration is in timeframe to activate
 			res, err := appl.Iterations().InTimeframe(ctx, itr)
 			if err != nil {
 				return jsonapi.JSONErrorResponse(ctx, err)
