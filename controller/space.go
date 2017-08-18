@@ -410,12 +410,19 @@ func ConvertSpaceFromModel(ctx context.Context, db application.DB, request *goa.
 	relatedAreaList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/areas", spaceIDStr))
 	relatedBacklogList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/backlog", spaceIDStr))
 	relatedCodebasesList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/codebases", spaceIDStr))
-	relatedWorkItemList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/workitems", spaceIDStr))
+	//relatedWorkItemList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/workitems", spaceIDStr))
 	relatedWorkItemTypeList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/workitemtypes", spaceIDStr))
 	relatedWorkItemLinkTypeList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/workitemlinktypes", spaceIDStr))
 	relatedOwnerByLink := rest.AbsoluteURL(request, fmt.Sprintf("%s/%s", usersEndpoint, sp.OwnerId.String()))
 	relatedCollaboratorList := rest.AbsoluteURL(request, fmt.Sprintf("/api/spaces/%s/collaborators", spaceIDStr))
 	relatedFilterList := rest.AbsoluteURL(request, "/api/filters")
+
+	var relatedWorkItemList string
+	err := application.Transactional(db, func(appl application.Application) error {
+		owner, _ := appl.Identities().Load(ctx, sp.OwnerId)
+		relatedWorkItemList = rest.AbsoluteURL(request, fmt.Sprintf("/api/namedspaces/%s/%s/workitems", owner.Username, sp.OwnerId.String()))
+		return nil
+	})
 
 	count, err := countBacklogItems(ctx, db, sp.ID)
 	if err != nil {
