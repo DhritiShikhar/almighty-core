@@ -248,6 +248,10 @@ func (m *GormIterationRepository) CanStart(ctx context.Context, i *Iteration) (b
 	return true, nil
 }
 
+// InTimeframe checks the rule:
+// 1. If StartAt is after current time -> activate the iteration
+// 2. If EndAt is before current time and StartAt is after current time -> activate the iteration
+// 3. If user deactivates iteration, check if startAt and endAt fall in timeframe -> activate the iteration (This behaviour will be modified)
 func (m *GormIterationRepository) InTimeframe(ctx context.Context, i *Iteration) (bool, error) {
 	itr := Iteration{}
 	tx := m.db.Where("id=?", i.ID).First(&itr)
