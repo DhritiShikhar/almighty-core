@@ -74,12 +74,18 @@ func (c *IterationController) CreateChild(ctx *app.CreateChildIterationContext) 
 
 		childPath := append(parent.Path, parent.ID)
 
+		reqIter.Attributes.UserActive = ctx.Payload.Data.Attributes.UserActive
+		active := appl.Iterations().CalculateActiveIterationOnCreate(ctx.Payload.Data.Attributes.UserActive, ctx.Payload.Data.Attributes.StartAt, ctx.Payload.Data.Attributes.EndAt)
+		reqIter.Attributes.ActiveStatus = &active
+
 		newItr := iteration.Iteration{
-			SpaceID: parent.SpaceID,
-			Path:    childPath,
-			Name:    *reqIter.Attributes.Name,
-			StartAt: reqIter.Attributes.StartAt,
-			EndAt:   reqIter.Attributes.EndAt,
+			SpaceID:      parent.SpaceID,
+			Path:         childPath,
+			Name:         *reqIter.Attributes.Name,
+			StartAt:      reqIter.Attributes.StartAt,
+			EndAt:        reqIter.Attributes.EndAt,
+			UserActive:   reqIter.Attributes.UserActive,
+			ActiveStatus: *reqIter.Attributes.ActiveStatus,
 		}
 
 		err = appl.Iterations().Create(ctx, &newItr)
@@ -177,29 +183,9 @@ func (c *IterationController) Update(ctx *app.UpdateIterationContext) error {
 		}
 		if ctx.Payload.Data.Attributes.StartAt != nil {
 			itr.StartAt = ctx.Payload.Data.Attributes.StartAt
-			// check if iteration is in timeframe to activate
-			res, err := appl.Iterations().InTimeframe(ctx, itr)
-			if err != nil {
-				return jsonapi.JSONErrorResponse(ctx, err)
-			}
-			if res == iteration.IterationActive {
-				itr.Active = iteration.IterationActive
-			} else {
-				itr.Active = iteration.IterationNotActive
-			}
 		}
 		if ctx.Payload.Data.Attributes.EndAt != nil {
 			itr.EndAt = ctx.Payload.Data.Attributes.EndAt
-			// check if iteration is in timeframe to activate
-			res, err := appl.Iterations().InTimeframe(ctx, itr)
-			if err != nil {
-				return jsonapi.JSONErrorResponse(ctx, err)
-			}
-			if res == iteration.IterationActive {
-				itr.Active = iteration.IterationActive
-			} else {
-				itr.Active = iteration.IterationNotActive
-			}
 		}
 		if ctx.Payload.Data.Attributes.Description != nil {
 			itr.Description = ctx.Payload.Data.Attributes.Description
@@ -213,27 +199,20 @@ func (c *IterationController) Update(ctx *app.UpdateIterationContext) error {
 			}
 			itr.State = *ctx.Payload.Data.Attributes.State
 		}
-		if ctx.Payload.Data.Attributes.Active != nil {
-			if *ctx.Payload.Data.Attributes.Active == iteration.IterationActive {
-				// user sets "active"
-				itr.Active = *ctx.Payload.Data.Attributes.Active
-			} else {
-				// user sets "deactive"
-				res, err := appl.Iterations().InTimeframe(ctx, itr)
-				if err != nil {
-					return jsonapi.JSONErrorResponse(ctx, err)
-				}
-				if res == iteration.IterationActive {
-					itr.Active = iteration.IterationActive
-				} else {
-					itr.Active = iteration.IterationNotActive
-				}
-			}
+		if ctx.Payload.Data.Attributes.UserActive != nil {
+			itr.UserActive = ctx.Payload.Data.Attributes.UserActive
 		}
+		activeStatus, err := appl.Iterations().CalculateActiveIterationOnUpdate(ctx, itr)
+		if err != nil {
+			return jsonapi.JSONErrorResponse(ctx, err)
+		}
+		itr.ActiveStatus = activeStatus
+
 		itr, err = appl.Iterations().Save(ctx.Context, *itr)
 		if err != nil {
 			return jsonapi.JSONErrorResponse(ctx, err)
 		}
+
 		wiCounts, err := appl.WorkItems().GetCountsForIteration(ctx, itr)
 		if err != nil {
 			return jsonapi.JSONErrorResponse(ctx, err)
@@ -281,15 +260,16 @@ func ConvertIteration(request *goa.RequestData, itr iteration.Iteration, additio
 		Type: iterationType,
 		ID:   &itr.ID,
 		Attributes: &app.IterationAttributes{
-			Name:        &itr.Name,
-			CreatedAt:   &itr.CreatedAt,
-			UpdatedAt:   &itr.UpdatedAt,
-			StartAt:     itr.StartAt,
-			EndAt:       itr.EndAt,
-			Description: itr.Description,
-			State:       &itr.State,
-			ParentPath:  &pathToTopMostParent,
-			Active:      &itr.Active,
+			Name:         &itr.Name,
+			CreatedAt:    &itr.CreatedAt,
+			UpdatedAt:    &itr.UpdatedAt,
+			StartAt:      itr.StartAt,
+			EndAt:        itr.EndAt,
+			Description:  itr.Description,
+			State:        &itr.State,
+			ParentPath:   &pathToTopMostParent,
+			UserActive:   itr.UserActive,
+			ActiveStatus: &itr.ActiveStatus,
 		},
 		Relationships: &app.IterationRelations{
 			Space: &app.RelationGeneric{
