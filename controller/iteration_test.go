@@ -471,11 +471,11 @@ func (rest *TestIterationREST) TestManualActivateIteration() {
 	// given
 	sp, _, _, _, itr1 := createSpaceAndRootAreaAndIterations(rest.T(), rest.db)
 	assert.Equal(rest.T(), iteration.IterationNotActive, itr1.Active)
-	activeIteration := iteration.IterationActive
+	IterationActive := iteration.IterationActive
 	payload := app.UpdateIterationPayload{
 		Data: &app.Iteration{
 			Attributes: &app.IterationAttributes{
-				Active: &activeIteration,
+				ManualActive: &IterationActive,
 			},
 			ID:   &itr1.ID,
 			Type: iteration.APIStringTypeIteration,
@@ -485,7 +485,8 @@ func (rest *TestIterationREST) TestManualActivateIteration() {
 	require.Nil(rest.T(), errIdn)
 	svc, ctrl := rest.SecuredControllerWithIdentity(owner)
 	_, updated := test.UpdateIterationOK(rest.T(), svc.Context, svc, ctrl, itr1.ID.String(), &payload)
-	assert.Equal(rest.T(), activeIteration, *updated.Data.Attributes.Active)
+	assert.Equal(rest.T(), IterationActive, *updated.Data.Attributes.ManualActive)
+	//assert.Equal(rest.T(), IterationActive, *updated.Data.Attributes.Active)
 }
 
 // Check iteration should be active when timeframe automatically activates the iteration
@@ -493,7 +494,8 @@ func (rest *TestIterationREST) TestAutomaticActivatateIteration() {
 	// given
 	sp, _, _, _, itr1 := createSpaceAndRootAreaAndIterations(rest.T(), rest.db)
 	assert.Equal(rest.T(), iteration.IterationNotActive, itr1.Active)
-	activeIteration := iteration.IterationActive
+	//IterationActive := iteration.IterationActive
+	IterationNotActive := iteration.IterationActive
 	startAt := time.Date(2017, 8, 17, 00, 00, 00, 00, time.UTC)
 	endAt := time.Date(2050, 8, 17, 00, 00, 00, 00, time.UTC)
 	payload := app.UpdateIterationPayload{
@@ -510,23 +512,24 @@ func (rest *TestIterationREST) TestAutomaticActivatateIteration() {
 	require.Nil(rest.T(), errIdn)
 	svc, ctrl := rest.SecuredControllerWithIdentity(owner)
 	_, updated := test.UpdateIterationOK(rest.T(), svc.Context, svc, ctrl, itr1.ID.String(), &payload)
-	assert.Equal(rest.T(), activeIteration, *updated.Data.Attributes.Active)
+	//assert.Equal(rest.T(), IterationActive, *updated.Data.Attributes.Active)
+	assert.Equal(rest.T(), IterationNotActive, *updated.Data.Attributes.ManualActive)
 }
 
-// Check iteration should be deactive when user has not set active flag and iteration is not in current timeframe
+/* Check iteration should be deactive when user has not set active flag and iteration is not in current timeframe
 func (rest *TestIterationREST) TestIterationNotActive() {
 	// given
 	sp, _, _, _, itr1 := createSpaceAndRootAreaAndIterations(rest.T(), rest.db)
 	assert.Equal(rest.T(), iteration.IterationNotActive, itr1.Active)
-	activeIteration := iteration.IterationNotActive
+	IterationNotActive := iteration.IterationNotActive
 	startAt := time.Date(2017, 4, 29, 00, 00, 00, 00, time.UTC)
 	endAt := time.Date(2017, 5, 17, 00, 00, 00, 00, time.UTC)
 	payload := app.UpdateIterationPayload{
 		Data: &app.Iteration{
 			Attributes: &app.IterationAttributes{
-				Active:  &activeIteration,
-				StartAt: &startAt,
-				EndAt:   &endAt,
+				ManualActive: &IterationNotActive,
+				StartAt:      &startAt,
+				EndAt:        &endAt,
 			},
 			ID:   &itr1.ID,
 			Type: iteration.APIStringTypeIteration,
@@ -536,8 +539,10 @@ func (rest *TestIterationREST) TestIterationNotActive() {
 	require.Nil(rest.T(), errIdn)
 	svc, ctrl := rest.SecuredControllerWithIdentity(owner)
 	_, updated := test.UpdateIterationOK(rest.T(), svc.Context, svc, ctrl, itr1.ID.String(), &payload)
+	//assert.Equal(rest.T(), IterationNotActive, *updated.Data.Attributes.Active)
+	assert.Equal(rest.T(), IterationNotActive, *updated.Data.Attributes.ManualActive)
 	//assert.Equal(rest.T(), activeIteration, *updated.Data.Attributes.Active)
-}
+}*/
 
 func getChildIterationPayload(name *string) *app.CreateChildIterationPayload {
 	start := time.Now()
