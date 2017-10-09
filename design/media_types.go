@@ -48,25 +48,6 @@ var position = a.Type("workItemReorderPosition", func() {
 	a.Required("direction")
 })
 
-// Tracker configuration
-var Tracker = a.MediaType("application/vnd.tracker+json", func() {
-	a.TypeName("Tracker")
-	a.Description("Tracker configuration")
-	a.Attribute("id", d.String, "unique id per tracker")
-	a.Attribute("url", d.String, "URL of the tracker")
-	a.Attribute("type", d.String, "Type of the tracker")
-
-	a.Required("id")
-	a.Required("url")
-	a.Required("type")
-
-	a.View("default", func() {
-		a.Attribute("id")
-		a.Attribute("url")
-		a.Attribute("type")
-	})
-})
-
 // TrackerQuery represents the search query with schedule
 var TrackerQuery = a.MediaType("application/vnd.trackerquery+json", func() {
 	a.TypeName("TrackerQuery")

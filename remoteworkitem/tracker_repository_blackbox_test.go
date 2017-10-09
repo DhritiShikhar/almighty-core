@@ -5,17 +5,15 @@ import (
 
 	"context"
 
-	"github.com/fabric8-services/fabric8-wit/application"
 	"github.com/fabric8-services/fabric8-wit/gormsupport/cleaner"
 	"github.com/fabric8-services/fabric8-wit/gormtestsupport"
-	"github.com/fabric8-services/fabric8-wit/remoteworkitem"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
 type trackerRepoBlackBoxTest struct {
 	gormtestsupport.DBTestSuite
-	repo application.TrackerRepository
+	repo TrackerRepository
 }
 
 func TestRunTrackerRepoBlackBoxTest(t *testing.T) {
@@ -24,7 +22,7 @@ func TestRunTrackerRepoBlackBoxTest(t *testing.T) {
 
 func (s *trackerRepoBlackBoxTest) SetupTest() {
 	s.DBTestSuite.SetupTest()
-	s.repo = remoteworkitem.NewTrackerRepository(s.DB)
+	s.repo = NewTrackerRepository(s.DB)
 }
 
 func (s *trackerRepoBlackBoxTest) TestFailDeleteZeroID() {
@@ -34,14 +32,14 @@ func (s *trackerRepoBlackBoxTest) TestFailDeleteZeroID() {
 	_, err := s.repo.Create(
 		context.Background(),
 		"http://api.github.com",
-		remoteworkitem.ProviderGithub)
+		ProviderGithub)
 
 	if err != nil {
 		s.T().Error("Could not create tracker", err)
 	}
 
 	err = s.repo.Delete(context.Background(), "0")
-	require.IsType(s.T(), remoteworkitem.NotFoundError{}, err)
+	require.IsType(s.T(), NotFoundError{}, err)
 }
 
 func (s *trackerRepoBlackBoxTest) TestFailSaveZeroID() {
@@ -51,7 +49,7 @@ func (s *trackerRepoBlackBoxTest) TestFailSaveZeroID() {
 	tr, err := s.repo.Create(
 		context.Background(),
 		"http://api.github.com",
-		remoteworkitem.ProviderGithub)
+		ProviderGithub)
 
 	if err != nil {
 		s.T().Error("Could not create tracker", err)
@@ -59,7 +57,7 @@ func (s *trackerRepoBlackBoxTest) TestFailSaveZeroID() {
 	tr.ID = "0"
 
 	_, err = s.repo.Save(context.Background(), *tr)
-	require.IsType(s.T(), remoteworkitem.NotFoundError{}, err)
+	require.IsType(s.T(), NotFoundError{}, err)
 }
 
 func (s *trackerRepoBlackBoxTest) TestFaiLoadZeroID() {
@@ -69,13 +67,13 @@ func (s *trackerRepoBlackBoxTest) TestFaiLoadZeroID() {
 	_, err := s.repo.Create(
 		context.Background(),
 		"http://api.github.com",
-		remoteworkitem.ProviderGithub)
+		ProviderGithub)
 
 	if err != nil {
 		s.T().Error("Could not create tracker", err)
 	}
 
 	_, err = s.repo.Load(context.Background(), "0")
-	var errorType remoteworkitem.NotFoundError
+	var errorType NotFoundError
 	require.IsType(s.T(), errorType, err)
 }

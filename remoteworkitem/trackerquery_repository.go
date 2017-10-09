@@ -28,6 +28,16 @@ func NewTrackerQueryRepository(db *gorm.DB) *GormTrackerQueryRepository {
 	return &GormTrackerQueryRepository{db}
 }
 
+// TrackerQueryRepository encapsulate storage & retrieval of tracker queries
+type TrackerQueryRepository interface {
+	repository.Exister
+	Create(ctx context.Context, query string, schedule string, tracker string, spaceID uuid.UUID) (*app.TrackerQuery, error)
+	Save(ctx context.Context, tq app.TrackerQuery) (*app.TrackerQuery, error)
+	Load(ctx context.Context, ID string) (*app.TrackerQuery, error)
+	Delete(ctx context.Context, ID string) error
+	List(ctx context.Context) ([]*app.TrackerQuery, error)
+}
+
 // Create creates a new tracker query in the repository
 // returns BadParameterError, ConversionError or InternalError
 func (r *GormTrackerQueryRepository) Create(ctx context.Context, query string, schedule string, tracker string, spaceID uuid.UUID) (*app.TrackerQuery, error) {

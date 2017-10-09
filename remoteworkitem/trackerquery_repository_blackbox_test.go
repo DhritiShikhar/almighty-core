@@ -3,9 +3,7 @@ package remoteworkitem_test
 import (
 	"testing"
 
-	"github.com/fabric8-services/fabric8-wit/application"
 	"github.com/fabric8-services/fabric8-wit/gormtestsupport"
-	"github.com/fabric8-services/fabric8-wit/remoteworkitem"
 	"github.com/fabric8-services/fabric8-wit/space"
 
 	"github.com/stretchr/testify/require"
@@ -14,8 +12,8 @@ import (
 
 type trackerQueryRepoBlackBoxTest struct {
 	gormtestsupport.DBTestSuite
-	repo   application.TrackerQueryRepository
-	trRepo application.TrackerRepository
+	repo   TrackerQueryRepository
+	trRepo TrackerRepository
 }
 
 func TestRunTrackerQueryRepoBlackBoxTest(t *testing.T) {
@@ -24,8 +22,8 @@ func TestRunTrackerQueryRepoBlackBoxTest(t *testing.T) {
 
 func (s *trackerQueryRepoBlackBoxTest) SetupTest() {
 	s.DBTestSuite.SetupTest()
-	s.repo = remoteworkitem.NewTrackerQueryRepository(s.DB)
-	s.trRepo = remoteworkitem.NewTrackerRepository(s.DB)
+	s.repo = NewTrackerQueryRepository(s.DB)
+	s.trRepo = NewTrackerRepository(s.DB)
 }
 
 func (s *trackerQueryRepoBlackBoxTest) TestFailDeleteZeroID() {
@@ -33,7 +31,7 @@ func (s *trackerQueryRepoBlackBoxTest) TestFailDeleteZeroID() {
 	tr, err := s.trRepo.Create(
 		s.Ctx,
 		"http://api.github.com",
-		remoteworkitem.ProviderGithub)
+		ProviderGithub)
 	if err != nil {
 		s.T().Error("Could not create tracker", err)
 	}
@@ -48,7 +46,7 @@ func (s *trackerQueryRepoBlackBoxTest) TestFailDeleteZeroID() {
 	}
 
 	err = s.repo.Delete(s.Ctx, "0")
-	require.IsType(s.T(), remoteworkitem.NotFoundError{}, err)
+	require.IsType(s.T(), NotFoundError{}, err)
 }
 
 func (s *trackerQueryRepoBlackBoxTest) TestFailSaveZeroID() {
@@ -56,7 +54,7 @@ func (s *trackerQueryRepoBlackBoxTest) TestFailSaveZeroID() {
 	tr, err := s.trRepo.Create(
 		s.Ctx,
 		"http://api.github.com",
-		remoteworkitem.ProviderGithub)
+		ProviderGithub)
 	if err != nil {
 		s.T().Error("Could not create tracker", err)
 	}
@@ -72,7 +70,7 @@ func (s *trackerQueryRepoBlackBoxTest) TestFailSaveZeroID() {
 	tq.ID = "0"
 
 	_, err = s.repo.Save(s.Ctx, *tq)
-	require.IsType(s.T(), remoteworkitem.NotFoundError{}, err)
+	require.IsType(s.T(), NotFoundError{}, err)
 }
 
 func (s *trackerQueryRepoBlackBoxTest) TestFaiLoadZeroID() {
@@ -80,7 +78,7 @@ func (s *trackerQueryRepoBlackBoxTest) TestFaiLoadZeroID() {
 	tr, err := s.trRepo.Create(
 		s.Ctx,
 		"http://api.github.com",
-		remoteworkitem.ProviderGithub)
+		ProviderGithub)
 	if err != nil {
 		s.T().Error("Could not create tracker", err)
 	}
@@ -95,5 +93,5 @@ func (s *trackerQueryRepoBlackBoxTest) TestFaiLoadZeroID() {
 	}
 
 	_, err = s.repo.Load(s.Ctx, "0")
-	require.IsType(s.T(), remoteworkitem.NotFoundError{}, err)
+	require.IsType(s.T(), NotFoundError{}, err)
 }

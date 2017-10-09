@@ -7,7 +7,6 @@ import (
 
 	"context"
 
-	"github.com/fabric8-services/fabric8-wit/application"
 	errs "github.com/fabric8-services/fabric8-wit/errors"
 	"github.com/fabric8-services/fabric8-wit/gormsupport/cleaner"
 	"github.com/fabric8-services/fabric8-wit/gormtestsupport"
@@ -23,8 +22,8 @@ import (
 type TestTrackerQueryRepository struct {
 	gormtestsupport.DBTestSuite
 
-	trackerRepo application.TrackerRepository
-	queryRepo   application.TrackerQueryRepository
+	trackerRepo TrackerRepository
+	queryRepo   TrackerQueryRepository
 
 	clean func()
 }
