@@ -5,6 +5,7 @@ import (
 	"github.com/fabric8-services/fabric8-wit/models"
 
 	"context"
+
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron"
@@ -13,7 +14,7 @@ import (
 
 // TrackerSchedule capture all configuration
 type trackerSchedule struct {
-	TrackerID   int
+	TrackerID   uuid.UUID
 	URL         string
 	TrackerType string
 	Query       string

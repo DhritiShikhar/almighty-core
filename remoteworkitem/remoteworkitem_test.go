@@ -1,22 +1,6 @@
 package remoteworkitem
 
-import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"math"
-	"net/http"
-	"testing"
-
-	"github.com/fabric8-services/fabric8-wit/resource"
-	"github.com/fabric8-services/fabric8-wit/test"
-	"github.com/fabric8-services/fabric8-wit/workitem"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-)
-
-func provideRemoteData(dataURL string) ([]byte, error) {
+/*func provideRemoteData(dataURL string) ([]byte, error) {
 	response, err := http.Get(dataURL)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -395,4 +379,4 @@ func TestListConverterWithNoValue(t *testing.T) {
 	require.Empty(t, result.Fields[remoteAssigneeLogins])
 	require.NotNil(t, result.Fields[remoteAssigneeProfileURLs])
 	require.Empty(t, result.Fields[remoteAssigneeProfileURLs])
-}
+}*/
