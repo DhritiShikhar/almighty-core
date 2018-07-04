@@ -365,22 +365,24 @@ func (s *eventRepoBlackBoxTest) TestList() {
 		fxt := tf.NewTestFixture(t, s.DB, tf.WorkItems(1))
 		label := []string{"label1"}
 		fxt.WorkItems[0].Fields[workitem.SystemLabels] = label
-		fxt.WorkItems[0].Fields[workitem.SystemState] = workitem.SystemStateResolved
 		_, err := s.wiRepo.Save(s.Ctx, fxt.WorkItems[0].SpaceID, *fxt.WorkItems[0], fxt.Identities[0].ID)
+		fxt.WorkItems[0].Fields[workitem.SystemState] = workitem.SystemStateResolved
+		require.NoError(t, err)
+		fxt.WorkItems[0].Version = fxt.WorkItems[0].Version + 1
+		_, err = s.wiRepo.Save(s.Ctx, fxt.WorkItems[0].SpaceID, *fxt.WorkItems[0], fxt.Identities[0].ID)
 		require.NoError(t, err)
 		eventList, err := s.wiEventRepo.List(s.Ctx, fxt.WorkItems[0].ID)
 		require.NoError(t, err)
 		require.NotEmpty(t, eventList)
 		require.Len(t, eventList, 2)
-		c := 0
-		for _, k := range eventList {
-			switch k.Name {
-			case workitem.SystemState:
-				c = c + 1
-			case workitem.SystemLabels:
-				c = c + 1
-			}
-		}
-		assert.Equal(t, 2, c)
+
+		assert.Equal(t, eventList[0].Name, workitem.SystemLabels)
+		labelValue, _ := eventList[0].New.([]interface{})
+		assert.Equal(t, label[0], labelValue[0])
+
+		assert.Equal(t, eventList[1].Name, workitem.SystemState)
+		stateValue, _ := eventList[1].New.(string)
+		assert.EqualValues(t, workitem.SystemStateResolved, stateValue)
+
 	})
 }
