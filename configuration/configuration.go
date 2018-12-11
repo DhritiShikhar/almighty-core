@@ -85,6 +85,7 @@ const (
 	varCacheControlUsers             = "cachecontrol.users"
 	varCacheControlCollaborators     = "cachecontrol.collaborators"
 	varCacheControlSpaceTemplates    = "cachecontrol.spacetemplates"
+	varCacheControlTrackerQueries    = "cachecontrol.trackerqueries"
 
 	// cache control settings for a single resource
 	varCacheControlUser             = "cachecontrol.user"
@@ -231,6 +232,7 @@ func (c *Registry) setConfigDefaults() {
 	c.v.SetDefault(varCacheControlFilters, "max-age=86400")
 	c.v.SetDefault(varCacheControlUsers, "max-age=2")
 	c.v.SetDefault(varCacheControlCollaborators, "max-age=2")
+	c.v.SetDefault(varCacheControlTrackerQueries, "max-age=2")
 
 	// Cache control values for a single resource
 	c.v.SetDefault(varCacheControlWorkItem, "private,max-age=2")
@@ -554,6 +556,12 @@ func (c *Registry) GetCacheControlCollaborators() string {
 // when data for the current user.
 func (c *Registry) GetCacheControlUser() string {
 	return c.v.GetString(varCacheControlUser)
+}
+
+// GetCacheControlTrackerQueries returns the value to set in the "Cache-Control" HTTP response header
+// when returning trackerqueries.
+func (c *Registry) GetCacheControlTrackerQueries() string {
+	return c.v.GetString(varCacheControlTrackerQueries)
 }
 
 // GetKeysEndpoint returns the endpoint to the auth service for key mgmt.

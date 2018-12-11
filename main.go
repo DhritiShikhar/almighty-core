@@ -290,7 +290,11 @@ func main() {
 		// Mount "trackerquery" controller
 		c6 := controller.NewTrackerqueryController(service, appDB, scheduler, config)
 		app.MountTrackerqueryController(service, c6)
+
 	}
+	// Mount "spaceTrackerQueries" controller
+	spaceTrackerQueriesCtrl := controller.NewSpaceTrackerQueriesController(service, appDB, config)
+	app.MountSpaceTrackerQueriesController(service, spaceTrackerQueriesCtrl)
 
 	// Mount "space" controller
 	spaceCtrl := controller.NewSpaceController(service, appDB, config, auth.NewAuthzResourceManager(config))
